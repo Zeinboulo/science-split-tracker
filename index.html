@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#09090b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Science Split | Evidence-Based Gym Tracker</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti for celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+            },
+            accent: {
+              cyan: '#06b6d4',
+              purple: '#8b5cf6',
+              amber: '#f59e0b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Mobile-first polish & smooth scrolling */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    input, textarea {
+      user-select: text;
+    }
+    body {
+      background-color: #09090b;
+      color: #f4f4f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+    .safe-top {
+      padding-top: env(safe-area-inset-top, 12px);
+    }
+    /* Hide scrollbar for tabs */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .active-set-row {
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    .completed-check {
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-zinc-950 text-zinc-100 antialiased selection:bg-emerald-500/30">
+
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-40 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 safe-top">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-950">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+            Science Split
+            <span class="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Hypertrophy</span>
+          </h1>
+          <p class="text-[11px] text-zinc-400">Evidence-Based 3-Day Routine</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button id="unit-toggle-btn" class="px-2.5 py-1 text-xs font-semibold rounded-md bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white transition">
+          <span id="unit-label">KG</span>
+        </button>
+        <button id="global-timer-btn" class="p-1.5 rounded-md bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-emerald-400 relative transition">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span id="timer-active-badge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT CONTAINER -->
+  <main class="flex-1 max-w-md w-full mx-auto p-4 pb-28">
+
+    <!-- VIEW 1: WORKOUT TAB -->
+    <section id="view-workout" class="space-y-4">
+      
+      <!-- Day Selector Pill Strip -->
+      <div class="flex items-center justify-between bg-zinc-900/80 p-1 rounded-xl border border-zinc-800/80 text-xs font-medium">
+        <button data-day="day1" class="day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold bg-emerald-500 text-zinc-950 shadow-md">
+          Day A
+          <span class="block text-[10px] font-normal opacity-85">Quad & Chest</span>
+        </button>
+        <button data-day="day2" class="day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold text-zinc-400 hover:text-zinc-200">
+          Day B
+          <span class="block text-[10px] font-normal opacity-75">Hinge & Back</span>
+        </button>
+        <button data-day="day3" class="day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold text-zinc-400 hover:text-zinc-200">
+          Day C
+          <span class="block text-[10px] font-normal opacity-75">Full & Arms</span>
+        </button>
+      </div>
+
+      <!-- Workout Session Card Info -->
+      <div class="bg-gradient-to-br from-zinc-900 to-zinc-900/60 p-4 rounded-2xl border border-zinc-800 relative overflow-hidden">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span id="workout-day-badge" class="text-xs font-bold uppercase tracking-wider text-emerald-400">Workout A</span>
+              <span class="text-xs text-zinc-500">•</span>
+              <span id="workout-target-summary" class="text-xs text-zinc-400">6 Exercises (18 sets)</span>
+            </div>
+            <h2 id="workout-day-title" class="text-lg font-bold text-white tracking-tight">Quad Dominant & Horizontal Push/Pull</h2>
+          </div>
+          <button id="reset-current-day-btn" title="Reset Today's Inputs" class="text-zinc-500 hover:text-zinc-300 p-1.5 rounded-lg bg-zinc-800/50">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Science Highlight Banner -->
+        <div class="mt-3 text-xs bg-emerald-950/40 border border-emerald-500/20 text-emerald-300/90 rounded-lg p-2.5 flex items-start gap-2">
+          <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          <span id="workout-science-tip">Focus on the lengthened position: control the eccentric phase (2-3s) and pause at maximum stretch to maximize mechanical tension.</span>
+        </div>
+      </div>
+
+      <!-- Exercise List Container -->
+      <div id="exercise-list" class="space-y-4">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+
+      <!-- Finish Workout Action Bar -->
+      <div class="pt-4">
+        <button id="finish-workout-btn" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-zinc-950 font-bold text-base shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transform active:scale-[0.99] transition">
+          <svg class="w-5 h-5 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+          Finish Workout & Log Volume
+        </button>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: VOLUME & SCIENCE TAB -->
+    <section id="view-volume" class="hidden space-y-4">
+      <div class="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <svg class="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          Weekly Volume Landmarks
+        </h2>
+        <p class="text-xs text-zinc-400 mt-1">
+          Based on Schoenfeld & Israetel hypertrophy research: Target 10–20 hard sets/muscle/week across 2–3 weekly exposures.
+        </p>
+
+        <!-- Volume Bars List -->
+        <div id="volume-bars-container" class="mt-4 space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Science Hypertrophy Principles Card -->
+      <div class="bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800 space-y-3">
+        <h3 class="text-sm font-bold text-zinc-200 uppercase tracking-wider text-xs">Science Hypertrophy Pillars</h3>
+        
+        <div class="border-l-2 border-emerald-500 pl-3 py-0.5">
+          <p class="text-xs font-semibold text-emerald-400">1. Stretch-Mediated Hypertrophy</p>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Training a muscle under high passive tension at long muscle lengths produces superior sarcomere addition in series.</p>
+        </div>
+
+        <div class="border-l-2 border-cyan-500 pl-3 py-0.5">
+          <p class="text-xs font-semibold text-cyan-400">2. Proximity to Failure (RIR 1-2)</p>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Full motor unit recruitment occurs when taking sets to 0–2 Reps in Reserve (RIR). Excessive failure adds disproportionate fatigue.</p>
+        </div>
+
+        <div class="border-l-2 border-purple-500 pl-3 py-0.5">
+          <p class="text-xs font-semibold text-purple-400">3. Inter-Set Rest (2-3+ Minutes)</p>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Resting 2–3 minutes for compound movements yields superior volume load and muscle growth compared to rushed 60s rest.</p>
+        </div>
+
+        <div class="border-l-2 border-amber-500 pl-3 py-0.5">
+          <p class="text-xs font-semibold text-amber-400">4. Progressive Overload</p>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Continuously beat either reps or load over time with identical execution standards and controlled eccentrics.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: HISTORY TAB -->
+    <section id="view-history" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-white">Workout Log</h2>
+          <p class="text-xs text-zinc-400">Your completed hypertrophy sessions</p>
+        </div>
+        <span id="history-total-count" class="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700 font-medium">0 Sessions</span>
+      </div>
+
+      <div id="history-list" class="space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- VIEW 4: TOOLS & SETTINGS TAB -->
+    <section id="view-tools" class="hidden space-y-4">
+      <!-- 1RM Calculator -->
+      <div class="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+        <h2 class="text-sm font-bold text-white flex items-center gap-2 mb-2">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          Scientific 1RM Calculator (Epley Formula)
+        </h2>
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div>
+            <label class="text-[11px] text-zinc-400 block mb-1">Weight (<span class="unit-text">KG</span>)</label>
+            <input type="number" id="calc-weight" placeholder="100" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="text-[11px] text-zinc-400 block mb-1">Reps Performed</label>
+            <input type="number" id="calc-reps" placeholder="8" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+        <div class="mt-4 p-3 bg-zinc-800/60 rounded-xl border border-zinc-700/60 flex items-center justify-between">
+          <div>
+            <span class="text-xs text-zinc-400">Estimated 1RM</span>
+            <div class="text-xl font-bold text-emerald-400" id="calc-result">-- <span class="unit-text text-sm">KG</span></div>
+          </div>
+          <div class="text-right text-xs text-zinc-400">
+            <div>75% 1RM: <span id="calc-75" class="font-semibold text-zinc-200">--</span></div>
+            <div>85% 1RM: <span id="calc-85" class="font-semibold text-zinc-200">--</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup & Restore -->
+      <div class="bg-zinc-900 p-4 rounded-2xl border border-zinc-800 space-y-3">
+        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+          </svg>
+          Data Management
+        </h2>
+        <p class="text-xs text-zinc-400">All data is saved locally on your phone. You can export a JSON backup or import anytime.</p>
+        <div class="flex gap-2 pt-1">
+          <button id="export-json-btn" class="flex-1 py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-semibold text-zinc-200 transition">
+            Export JSON
+          </button>
+          <label class="flex-1 py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-semibold text-zinc-200 transition text-center cursor-pointer">
+            Import JSON
+            <input type="file" id="import-json-file" accept=".json" class="hidden" />
+          </label>
+        </div>
+        <button id="clear-all-data-btn" class="w-full py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition mt-2">
+          Clear All Workout History
+        </button>
+      </div>
+
+      <div class="text-center text-xs text-zinc-500 pt-2">
+        Science Split Tracker • 100% Offline Capable • PWA Ready
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FLOATING REST TIMER PILL (Visible when timer is active or triggered) -->
+  <div id="rest-timer-bar" class="hidden fixed bottom-20 left-4 right-4 max-w-md mx-auto z-40 bg-zinc-900/95 backdrop-blur-lg border border-emerald-500/50 rounded-2xl p-3 shadow-2xl shadow-emerald-950/80">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <!-- Circular mini progress -->
+        <div class="relative w-10 h-10 flex items-center justify-center">
+          <svg class="w-10 h-10 transform -rotate-90">
+            <circle cx="20" cy="20" r="16" stroke="currentColor" stroke-width="3" class="text-zinc-800" fill="none"/>
+            <circle id="timer-svg-circle" cx="20" cy="20" r="16" stroke="currentColor" stroke-width="3" class="text-emerald-400 transition-all duration-300" stroke-dasharray="100" stroke-dashoffset="0" fill="none" stroke-linecap="round"/>
+          </svg>
+          <span id="timer-seconds-text" class="absolute text-xs font-extrabold text-white">90s</span>
+        </div>
+        <div>
+          <span class="text-xs font-bold text-white block">Hypertrophy Rest</span>
+          <span id="timer-exercise-name" class="text-[11px] text-zinc-400 truncate max-w-[140px] block">Next Set Ready In</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-1.5">
+        <button id="timer-add-30" class="px-2 py-1 text-xs font-medium rounded-lg bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700">+30s</button>
+        <button id="timer-stop-btn" class="p-1.5 rounded-lg bg-zinc-800 text-zinc-400 hover:text-red-400 border border-zinc-700">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 safe-bottom">
+    <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
+      <button data-nav="workout" class="nav-btn flex flex-col items-center justify-center py-1 text-emerald-400">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+        <span class="text-[10px] font-semibold">Workout</span>
+      </button>
+
+      <button data-nav="volume" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span class="text-[10px] font-medium">Volume</span>
+      </button>
+
+      <button data-nav="history" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-[10px] font-medium">History</span>
+      </button>
+
+      <button data-nav="tools" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="text-[10px] font-medium">Tools</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MODAL: WORKOUT COMPLETE SUMMARY -->
+  <div id="summary-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative">
+      <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+
+      <h3 class="text-xl font-extrabold text-white mb-1">Stimulus Complete!</h3>
+      <p class="text-xs text-zinc-400 mb-6">Scientific stimulus achieved. Time for protein synthesis and recovery.</p>
+
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="bg-zinc-800/70 p-3 rounded-2xl border border-zinc-700/50">
+          <span class="text-[10px] uppercase font-bold text-zinc-400">Total Sets</span>
+          <p id="modal-sets-val" class="text-xl font-extrabold text-emerald-400">18</p>
+        </div>
+        <div class="bg-zinc-800/70 p-3 rounded-2xl border border-zinc-700/50">
+          <span class="text-[10px] uppercase font-bold text-zinc-400">Volume Load</span>
+          <p id="modal-tonnage-val" class="text-xl font-extrabold text-cyan-400">0 <span class="text-xs unit-text">KG</span></p>
+        </div>
+      </div>
+
+      <button id="modal-close-btn" class="w-full py-3.5 rounded-xl bg-emerald-500 text-zinc-950 font-bold hover:bg-emerald-400 transition">
+        Save & Return
+      </button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // --- 1. EVIDENCE-BASED 3-DAY ROUTINE DEFINITIONS ---
+    const ROUTINES = {
+      day1: {
+        id: 'day1',
+        title: 'Workout A: Quad Dominant & Horizontal Push/Pull',
+        badge: 'Workout A',
+        targetSummary: '6 Exercises • 18 Sets',
+        tip: 'Focus on lengthened position: 2-3s controlled eccentric and a 1s pause in the stretched position to maximize mechanical tension.',
+        exercises: [
+          {
+            id: 'squat',
+            name: 'Barbell Back Squat / Hack Squat',
+            targetMuscle: 'Quads',
+            scienceNote: 'Deep knee flexion. Pause 1s in the bottom stretch. Target RIR 2.',
+            defaultSets: 3,
+            targetReps: '6-8',
+            restSeconds: 180,
+            muscleGroup: 'quads'
+          },
+          {
+            id: 'bench_press',
+            name: 'Flat Dumbbell / Barbell Bench Press',
+            targetMuscle: 'Chest',
+            scienceNote: 'Elbows at 45-60°. Full deep stretch at bottom of each rep.',
+            defaultSets: 3,
+            targetReps: '8-10',
+            restSeconds: 150,
+            muscleGroup: 'chest'
+          },
+          {
+            id: 'chest_supported_row',
+            name: 'Chest-Supported Row',
+            targetMuscle: 'Back',
+            scienceNote: 'Eliminates spinal loading. Full protraction at extension.',
+            defaultSets: 3,
+            targetReps: '10-12',
+            restSeconds: 120,
+            muscleGroup: 'back'
+          },
+          {
+            id: 'incline_db_curl',
+            name: 'Incline Dumbbell Bicep Curl',
+            targetMuscle: 'Biceps',
+            scienceNote: 'Shoulders in extension behind torso to overload lengthened biceps.',
+            defaultSets: 3,
+            targetReps: '10-12',
+            restSeconds: 90,
+            muscleGroup: 'arms'
+          },
+          {
+            id: 'overhead_triceps',
+            name: 'Overhead Cable Triceps Extension',
+            targetMuscle: 'Triceps',
+            scienceNote: 'Overheads maximize stretch on the long head of the triceps.',
+            defaultSets: 3,
+            targetReps: '12-15',
+            restSeconds: 90,
+            muscleGroup: 'arms'
+          },
+          {
+            id: 'calf_raise',
+            name: 'Standing Calf Raise',
+            targetMuscle: 'Calves',
+            scienceNote: '2s pause in the bottom heel drop to remove Achilles elastic rebound.',
+            defaultSets: 3,
+            targetReps: '12-15',
+            restSeconds: 75,
+            muscleGroup: 'calves'
+          }
+        ]
+      },
+      day2: {
+        id: 'day2',
+        title: 'Workout B: Hinge Dominant & Vertical Pull/Press',
+        badge: 'Workout B',
+        targetSummary: '6 Exercises • 19 Sets',
+        tip: 'Romanian deadlifts and pull-downs target maximum muscle length. Avoid bouncing out of the stretched position.',
+        exercises: [
+          {
+            id: 'rdl',
+            name: 'Romanian Deadlift (Dumbbell or Barbell)',
+            targetMuscle: 'Hamstrings',
+            scienceNote: 'Hinge hips backwards until hamstring stretch is maximal. Flat spine.',
+            defaultSets: 3,
+            targetReps: '8-10',
+            restSeconds: 180,
+            muscleGroup: 'hamstrings'
+          },
+          {
+            id: 'lat_pulldown',
+            name: 'Lat Pulldown / Neutral Pull-Up',
+            targetMuscle: 'Back',
+            scienceNote: 'Drive elbows down to hips. Controlled 3s eccentric up.',
+            defaultSets: 3,
+            targetReps: '8-10',
+            restSeconds: 120,
+            muscleGroup: 'back'
+          },
+          {
+            id: 'incline_db_press',
+            name: 'Incline Dumbbell Press (30° Angle)',
+            targetMuscle: 'Chest',
+            scienceNote: '30° incline isolates the clavicular (upper) head of the pectoralis.',
+            defaultSets: 3,
+            targetReps: '8-10',
+            restSeconds: 150,
+            muscleGroup: 'chest'
+          },
+          {
+            id: 'cable_lateral_raise',
+            name: 'Cable Lateral Raise (Behind Back)',
+            targetMuscle: 'Shoulders',
+            scienceNote: 'Cables provide constant lateral delt tension through the lengthened range.',
+            defaultSets: 4,
+            targetReps: '12-15',
+            restSeconds: 90,
+            muscleGroup: 'shoulders'
+          },
+          {
+            id: 'leg_extension',
+            name: 'Leg Extension',
+            targetMuscle: 'Quads',
+            scienceNote: 'Trains the rectus femoris in the shortened & mid range.',
+            defaultSets: 3,
+            targetReps: '12-15',
+            restSeconds: 90,
+            muscleGroup: 'quads'
+          },
+          {
+            id: 'hanging_leg_raise',
+            name: 'Hanging Leg Raise / Cable Crunch',
+            targetMuscle: 'Abs',
+            scienceNote: 'Curl pelvis towards chest; emphasize spinal flexion over hip flexion.',
+            defaultSets: 3,
+            targetReps: '12-15',
+            restSeconds: 75,
+            muscleGroup: 'abs'
+          }
+        ]
+      },
+      day3: {
+        id: 'day3',
+        title: 'Workout C: Posterior Chain, Arms & Volume Balance',
+        badge: 'Workout C',
+        targetSummary: '6 Exercises • 18 Sets',
+        tip: 'Prioritize isolated peak contraction and high quality repetitions with RIR 1-2 across all sets.',
+        exercises: [
+          {
+            id: 'leg_press',
+            name: 'Leg Press / Bulgarian Split Squat',
+            targetMuscle: 'Quads',
+            scienceNote: 'Feet low for quad bias or high for glute bias. Full knee bend.',
+            defaultSets: 3,
+            targetReps: '10-12',
+            restSeconds: 150,
+            muscleGroup: 'quads'
+          },
+          {
+            id: 'seated_leg_curl',
+            name: 'Seated Leg Curl',
+            targetMuscle: 'Hamstrings',
+            scienceNote: 'Seated position produces greater hypertrophy than lying due to hip flexion stretch.',
+            defaultSets: 3,
+            targetReps: '10-12',
+            restSeconds: 120,
+            muscleGroup: 'hamstrings'
+          },
+          {
+            id: 'cable_flye',
+            name: 'Cable Chest Flye',
+            targetMuscle: 'Chest',
+            scienceNote: 'Provides high tension at peak adduction without triceps fatigue.',
+            defaultSets: 3,
+            targetReps: '12-15',
+            restSeconds: 90,
+            muscleGroup: 'chest'
+          },
+          {
+            id: 'rear_delt_row',
+            name: 'Seated Cable Row (Wide Elbows / Rear Delt)',
+            targetMuscle: 'Back',
+            scienceNote: '45° elbow flare hits rhomboids and posterior deltoids.',
+            defaultSets: 3,
+            targetReps: '12-15',
+            restSeconds: 90,
+            muscleGroup: 'shoulders'
+          },
+          {
+            id: 'hammer_curl',
+            name: 'Dumbbell Hammer Curl',
+            targetMuscle: 'Arms',
+            scienceNote: 'Neutral grip shifts mechanical load to brachialis & brachioradialis.',
+            defaultSets: 3,
+            targetReps: '10-12',
+            restSeconds: 90,
+            muscleGroup: 'arms'
+          },
+          {
+            id: 'triceps_pushdown',
+            name: 'Dual-Rope Triceps Pushdown',
+            targetMuscle: 'Triceps',
+            scienceNote: 'Spread ropes apart at bottom for complete triceps contraction.',
+            defaultSets: 3,
+            targetReps: '12-15',
+            restSeconds: 90,
+            muscleGroup: 'arms'
+          }
+        ]
+      }
+    };
+
+    // --- 2. STATE INITIALIZATION ---
+    let currentDayKey = 'day1';
+    let unit = localStorage.getItem('science_split_unit') || 'KG';
+    let currentWorkoutData = JSON.parse(localStorage.getItem('science_split_active_' + currentDayKey)) || null;
+    let workoutHistory = JSON.parse(localStorage.getItem('science_split_history')) || [];
+    let exerciseHistory = JSON.parse(localStorage.getItem('science_split_ex_history')) || {};
+
+    // Web Audio Context for rest timer chime
+    let audioCtx = null;
+    function playBeep(freq = 880, duration = 0.2) {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn('Audio not available', e);
+      }
+    }
+
+    // --- 3. REST TIMER ENGINE ---
+    let timerInterval = null;
+    let timerRemaining = 0;
+    let timerTotal = 0;
+
+    function startRestTimer(seconds, exerciseName = 'Exercise') {
+      clearInterval(timerInterval);
+      timerRemaining = seconds;
+      timerTotal = seconds;
+
+      const bar = document.getElementById('rest-timer-bar');
+      const badge = document.getElementById('timer-active-badge');
+      const nameEl = document.getElementById('timer-exercise-name');
+      
+      bar.classList.remove('hidden');
+      badge.classList.remove('hidden');
+      nameEl.innerText = exerciseName;
+
+      updateTimerUI();
+
+      timerInterval = setInterval(() => {
+        timerRemaining--;
+        updateTimerUI();
+
+        if (timerRemaining <= 0) {
+          clearInterval(timerInterval);
+          playBeep(659, 0.15);
+          setTimeout(() => playBeep(880, 0.35), 180);
+          if (navigator.vibrate) navigator.vibrate([200, 100, 250]);
+          setTimeout(() => {
+            bar.classList.add('hidden');
+            badge.classList.add('hidden');
+          }, 3000);
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI() {
+      const textEl = document.getElementById('timer-seconds-text');
+      const circleEl = document.getElementById('timer-svg-circle');
+      
+      const mins = Math.floor(timerRemaining / 60);
+      const secs = timerRemaining % 60;
+      textEl.innerText = mins > 0 ? `${mins}:${secs < 10 ? '0' : ''}${secs}` : `${secs}s`;
+
+      const progress = timerTotal > 0 ? (timerRemaining / timerTotal) * 100 : 0;
+      circleEl.style.strokeDashoffset = (100 - progress).toString();
+    }
+
+    document.getElementById('timer-stop-btn').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      document.getElementById('rest-timer-bar').classList.add('hidden');
+      document.getElementById('timer-active-badge').classList.add('hidden');
+    });
+
+    document.getElementById('timer-add-30').addEventListener('click', () => {
+      timerRemaining += 30;
+      timerTotal += 30;
+      updateTimerUI();
+    });
+
+    document.getElementById('global-timer-btn').addEventListener('click', () => {
+      const bar = document.getElementById('rest-timer-bar');
+      if (bar.classList.contains('hidden')) {
+        startRestTimer(90, 'Rest Interval');
+      } else {
+        bar.classList.add('hidden');
+      }
+    });
+
+    // --- 4. DATA BUILDER & WORKOUT LOGIC ---
+    function initializeDayData(dayKey) {
+      const routine = ROUTINES[dayKey];
+      const saved = localStorage.getItem('science_split_active_' + dayKey);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+
+      // Fresh session structure
+      const session = {
+        dayKey: dayKey,
+        startedAt: new Date().toISOString(),
+        exercises: routine.exercises.map(ex => {
+          // Check if previous data exists for smart auto-fill
+          const prev = exerciseHistory[ex.id] || null;
+          const defaultSetsArr = [];
+          for (let i = 0; i < ex.defaultSets; i++) {
+            defaultSetsArr.push({
+              setNum: i + 1,
+              weight: prev ? prev.weight : '',
+              reps: prev ? prev.reps : '',
+              rir: 2,
+              completed: false,
+              isWarmup: false
+            });
+          }
+          return {
+            id: ex.id,
+            name: ex.name,
+            sets: defaultSetsArr
+          };
+        })
+      };
+      return session;
+    }
+
+    function saveActiveWorkout() {
+      localStorage.setItem('science_split_active_' + currentDayKey, JSON.stringify(currentWorkoutData));
+    }
+
+    // --- 5. RENDER WORKOUT TAB ---
+    function renderWorkoutView() {
+      const routine = ROUTINES[currentDayKey];
+      document.getElementById('workout-day-badge').innerText = routine.badge;
+      document.getElementById('workout-day-title').innerText = routine.title;
+      document.getElementById('workout-target-summary').innerText = routine.targetSummary;
+      document.getElementById('workout-science-tip').innerText = routine.tip;
+
+      // Update Day Tabs Active UI
+      document.querySelectorAll('.day-tab-btn').forEach(btn => {
+        if (btn.dataset.day === currentDayKey) {
+          btn.className = 'day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold bg-emerald-500 text-zinc-950 shadow-md';
+        } else {
+          btn.className = 'day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold text-zinc-400 hover:text-zinc-200';
+        }
+      });
+
+      const container = document.getElementById('exercise-list');
+      container.innerHTML = '';
+
+      if (!currentWorkoutData) {
+        currentWorkoutData = initializeDayData(currentDayKey);
+      }
+
+      currentWorkoutData.exercises.forEach((exData, exIdx) => {
+        const blueprint = routine.exercises.find(e => e.id === exData.id) || routine.exercises[exIdx];
+        const prevRecord = exerciseHistory[blueprint.id] || null;
+
+        const card = document.createElement('div');
+        card.className = 'bg-zinc-900 rounded-2xl border border-zinc-800/90 overflow-hidden shadow-sm';
+
+        let prevBadgeHtml = '';
+        if (prevRecord) {
+          prevBadgeHtml = `
+            <span class="text-[11px] font-medium text-emerald-400/90 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/20">
+              Last: ${prevRecord.weight}${unit} × ${prevRecord.reps}r
+            </span>
+          `;
+        }
+
+        let setsHtml = '';
+        exData.sets.forEach((s, sIdx) => {
+          setsHtml += `
+            <tr class="border-b border-zinc-800/60 text-xs active-set-row ${s.completed ? 'bg-emerald-950/15' : ''}">
+              <td class="py-2.5 px-3 font-semibold text-zinc-400 text-center w-10">
+                ${s.setNum}
+              </td>
+              <td class="py-2.5 px-2">
+                <input type="number" step="0.5" placeholder="0" value="${s.weight}" 
+                  onchange="updateSetData('${currentDayKey}', ${exIdx}, ${sIdx}, 'weight', this.value)"
+                  class="w-full bg-zinc-800/80 border border-zinc-700/80 rounded-lg py-1.5 px-2 text-center text-white font-medium focus:outline-none focus:border-emerald-500 focus:bg-zinc-800" />
+              </td>
+              <td class="py-2.5 px-2">
+                <input type="number" placeholder="${blueprint.targetReps.split('-')[0]}" value="${s.reps}" 
+                  onchange="updateSetData('${currentDayKey}', ${exIdx}, ${sIdx}, 'reps', this.value)"
+                  class="w-full bg-zinc-800/80 border border-zinc-700/80 rounded-lg py-1.5 px-2 text-center text-white font-medium focus:outline-none focus:border-emerald-500 focus:bg-zinc-800" />
+              </td>
+              <td class="py-2.5 px-2 w-16">
+                <select onchange="updateSetData('${currentDayKey}', ${exIdx}, ${sIdx}, 'rir', this.value)"
+                  class="w-full bg-zinc-800/80 border border-zinc-700/80 rounded-lg py-1.5 px-1 text-center text-zinc-200 text-xs focus:outline-none focus:border-emerald-500">
+                  <option value="0" ${s.rir == 0 ? 'selected' : ''}>0 RIR</option>
+                  <option value="1" ${s.rir == 1 ? 'selected' : ''}>1 RIR</option>
+                  <option value="2" ${s.rir == 2 ? 'selected' : ''}>2 RIR</option>
+                  <option value="3" ${s.rir == 3 ? 'selected' : ''}>3 RIR</option>
+                </select>
+              </td>
+              <td class="py-2.5 px-3 text-center w-12">
+                <button onclick="toggleSetComplete('${currentDayKey}', ${exIdx}, ${sIdx}, '${blueprint.name}', ${blueprint.restSeconds})" 
+                  class="w-8 h-8 rounded-xl flex items-center justify-center transition border ${s.completed ? 'bg-emerald-500 border-emerald-400 text-zinc-950 completed-check' : 'bg-zinc-800/80 border-zinc-700 text-zinc-500 hover:text-zinc-300'}">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="p-3.5 bg-zinc-900 border-b border-zinc-800/80">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h3 class="font-bold text-sm text-zinc-100 flex items-center gap-1.5">
+                  ${blueprint.name}
+                </h3>
+                <span class="text-[11px] text-zinc-400 mt-0.5 block">
+                  Target: <strong class="text-zinc-300">${blueprint.targetReps} reps</strong> • Rest ${blueprint.restSeconds}s
+                </span>
+              </div>
+              <div>${prevBadgeHtml}</div>
+            </div>
+            
+            <p class="text-[11px] text-zinc-400 bg-zinc-950/60 p-2 rounded-lg mt-2 border border-zinc-800/60 flex items-center gap-1.5">
+              <span class="text-cyan-400 font-semibold">Science Cue:</span> ${blueprint.scienceNote}
+            </p>
+          </div>
+
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="text-[10px] uppercase font-bold text-zinc-500 border-b border-zinc-800/80 bg-zinc-900/40">
+                <th class="py-2 px-3 text-center w-10">Set</th>
+                <th class="py-2 px-2 text-center">Weight (${unit})</th>
+                <th class="py-2 px-2 text-center">Reps</th>
+                <th class="py-2 px-2 text-center w-16">Effort</th>
+                <th class="py-2 px-3 text-center w-12">Log</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${setsHtml}
+            </tbody>
+          </table>
+
+          <div class="p-2.5 bg-zinc-900/60 flex justify-between items-center text-xs">
+            <button onclick="addSetToExercise('${currentDayKey}', ${exIdx})" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 px-2 py-1 rounded hover:bg-emerald-500/10 transition">
+              + Add Set
+            </button>
+            <button onclick="removeSetFromExercise('${currentDayKey}', ${exIdx})" class="text-xs text-zinc-500 hover:text-red-400 px-2 py-1 transition">
+              Remove Set
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // --- 6. USER ACTION HANDLERS ---
+    window.updateSetData = function(dayKey, exIdx, setIdx, field, val) {
+      if (currentWorkoutData && currentWorkoutData.exercises[exIdx]) {
+        currentWorkoutData.exercises[exIdx].sets[setIdx][field] = val;
+        saveActiveWorkout();
+      }
+    };
+
+    window.toggleSetComplete = function(dayKey, exIdx, setIdx, exerciseName, restSeconds) {
+      const setObj = currentWorkoutData.exercises[exIdx].sets[setIdx];
+      setObj.completed = !setObj.completed;
+
+      // Ensure weight & reps have values if checked
+      if (setObj.completed) {
+        if (!setObj.weight) setObj.weight = 0;
+        if (!setObj.reps) setObj.reps = 8;
+        playBeep(523, 0.1);
+        startRestTimer(restSeconds || 90, exerciseName);
+      }
+
+      saveActiveWorkout();
+      renderWorkoutView();
+    };
+
+    window.addSetToExercise = function(dayKey, exIdx) {
+      const sets = currentWorkoutData.exercises[exIdx].sets;
+      const lastSet = sets[sets.length - 1];
+      sets.push({
+        setNum: sets.length + 1,
+        weight: lastSet ? lastSet.weight : '',
+        reps: lastSet ? lastSet.reps : '',
+        rir: 2,
+        completed: false,
+        isWarmup: false
+      });
+      saveActiveWorkout();
+      renderWorkoutView();
+    };
+
+    window.removeSetFromExercise = function(dayKey, exIdx) {
+      const sets = currentWorkoutData.exercises[exIdx].sets;
+      if (sets.length > 1) {
+        sets.pop();
+        saveActiveWorkout();
+        renderWorkoutView();
+      }
+    };
+
+    // Day Tab Switching
+    document.querySelectorAll('.day-tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const day = btn.dataset.day;
+        currentDayKey = day;
+        currentWorkoutData = initializeDayData(currentDayKey);
+        renderWorkoutView();
+      });
+    });
+
+    // Reset Day Inputs
+    document.getElementById('reset-current-day-btn').addEventListener('click', () => {
+      if (confirm("Reset current workout inputs for " + ROUTINES[currentDayKey].badge + "?")) {
+        localStorage.removeItem('science_split_active_' + currentDayKey);
+        currentWorkoutData = initializeDayData(currentDayKey);
+        renderWorkoutView();
+      }
+    });
+
+    // Finish Workout & Calculate Tonnage
+    document.getElementById('finish-workout-btn').addEventListener('click', () => {
+      let completedSetsCount = 0;
+      let totalVolumeLoad = 0;
+
+      const routine = ROUTINES[currentDayKey];
+      const completedExercisesSummary = [];
+
+      currentWorkoutData.exercises.forEach((ex, idx) => {
+        const completedSets = ex.sets.filter(s => s.completed);
+        completedSetsCount += completedSets.length;
+
+        if (completedSets.length > 0) {
+          const blueprint = routine.exercises.find(e => e.id === ex.id) || routine.exercises[idx];
+          // Record best set for history
+          let bestSet = completedSets[0];
+          completedSets.forEach(s => {
+            const load = (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0);
+            totalVolumeLoad += load;
+            if ((parseFloat(s.weight) || 0) >= (parseFloat(bestSet.weight) || 0)) {
+              bestSet = s;
+            }
+          });
+
+          // Save last record to exerciseHistory for progressive overload comparison
+          exerciseHistory[blueprint.id] = {
+            weight: bestSet.weight,
+            reps: bestSet.reps,
+            date: new Date().toLocaleDateString()
+          };
+
+          completedExercisesSummary.push({
+            name: blueprint.name,
+            muscleGroup: blueprint.muscleGroup,
+            sets: completedSets.length,
+            bestWeight: bestSet.weight,
+            bestReps: bestSet.reps
+          });
+        }
+      });
+
+      if (completedSetsCount === 0) {
+        alert("Please log and complete at least 1 set before finishing the workout!");
+        return;
+      }
+
+      // Add to workout history log
+      const logEntry = {
+        id: Date.now().toString(),
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        dayKey: currentDayKey,
+        dayBadge: routine.badge,
+        dayTitle: routine.title,
+        totalSets: completedSetsCount,
+        volumeLoad: Math.round(totalVolumeLoad),
+        unit: unit,
+        exercises: completedExercisesSummary
+      };
+
+      workoutHistory.unshift(logEntry);
+      localStorage.setItem('science_split_history', JSON.stringify(workoutHistory));
+      localStorage.setItem('science_split_ex_history', JSON.stringify(exerciseHistory));
+
+      // Reset active day session
+      localStorage.removeItem('science_split_active_' + currentDayKey);
+      currentWorkoutData = initializeDayData(currentDayKey);
+
+      // Trigger Confetti!
+      if (window.confetti) {
+        window.confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
+
+      // Open Modal Summary
+      document.getElementById('modal-sets-val').innerText = completedSetsCount;
+      document.getElementById('modal-tonnage-val').innerHTML = `${Math.round(totalVolumeLoad).toLocaleString()} <span class="text-xs unit-text">${unit}</span>`;
+      document.getElementById('summary-modal').classList.remove('hidden');
+
+      renderWorkoutView();
+      renderHistoryView();
+      renderVolumeView();
+    });
+
+    document.getElementById('modal-close-btn').addEventListener('click', () => {
+      document.getElementById('summary-modal').classList.add('hidden');
+    });
+
+    // --- 7. VOLUME TAB CALCULATOR ---
+    function renderVolumeView() {
+      const container = document.getElementById('volume-bars-container');
+      container.innerHTML = '';
+
+      // Muscle group science targets (sets per week)
+      // Schoenfeld / Israetel guidelines
+      const targetLandmarks = {
+        chest: { name: 'Chest', mev: 8, mav: 14, mrv: 22, color: 'bg-emerald-500' },
+        back: { name: 'Back / Lats', mev: 10, mav: 16, mrv: 22, color: 'bg-cyan-500' },
+        quads: { name: 'Quads', mev: 8, mav: 14, mrv: 20, color: 'bg-emerald-400' },
+        hamstrings: { name: 'Hamstrings & Glutes', mev: 6, mav: 12, mrv: 18, color: 'bg-purple-500' },
+        shoulders: { name: 'Side / Rear Delts', mev: 8, mav: 16, mrv: 24, color: 'bg-amber-400' },
+        arms: { name: 'Biceps & Triceps', mev: 8, mav: 14, mrv: 20, color: 'bg-pink-500' }
+      };
+
+      // Calculate sets completed in history (last 7 days) or scheduled routine
+      const weeklySets = {
+        chest: 0,
+        back: 0,
+        quads: 0,
+        hamstrings: 0,
+        shoulders: 0,
+        arms: 0
+      };
+
+      // Count scheduled sets from all 3 days in the science split program
+      Object.keys(ROUTINES).forEach(dk => {
+        ROUTINES[dk].exercises.forEach(ex => {
+          if (weeklySets[ex.muscleGroup] !== undefined) {
+            weeklySets[ex.muscleGroup] += ex.defaultSets;
+          }
+        });
+      });
+
+      Object.keys(targetLandmarks).forEach(mKey => {
+        const item = targetLandmarks[mKey];
+        const sets = weeklySets[mKey] || 0;
+        const pct = Math.min(100, Math.round((sets / item.mav) * 100));
+
+        const bar = document.createElement('div');
+        bar.className = 'bg-zinc-800/40 p-3 rounded-xl border border-zinc-800';
+        bar.innerHTML = `
+          <div class="flex justify-between items-center text-xs mb-1.5">
+            <span class="font-bold text-zinc-200">${item.name}</span>
+            <span class="text-zinc-400"><strong class="text-white">${sets}</strong> sets/wk <span class="text-[10px] text-emerald-400 font-semibold">(Optimal MAV: ${item.mav})</span></span>
+          </div>
+          <div class="w-full h-2.5 bg-zinc-800 rounded-full overflow-hidden flex">
+            <div class="${item.color} h-full transition-all duration-500" style="width: ${pct}%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-zinc-500 mt-1">
+            <span>MEV: ${item.mev}</span>
+            <span>Target: ${item.mav}</span>
+            <span>MRV: ${item.mrv}</span>
+          </div>
+        `;
+        container.appendChild(bar);
+      });
+    }
+
+    // --- 8. HISTORY VIEW ---
+    function renderHistoryView() {
+      const container = document.getElementById('history-list');
+      const countEl = document.getElementById('history-total-count');
+      container.innerHTML = '';
+      countEl.innerText = `${workoutHistory.length} Sessions`;
+
+      if (workoutHistory.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-zinc-500">
+            <svg class="w-12 h-12 mx-auto text-zinc-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <p class="text-sm font-semibold">No recorded workouts yet</p>
+            <p class="text-xs text-zinc-600 mt-1">Complete your first Workout A session to see your progress!</p>
+          </div>
+        `;
+        return;
+      }
+
+      workoutHistory.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-zinc-900 p-4 rounded-2xl border border-zinc-800 space-y-2';
+
+        let exerciseListHtml = '';
+        if (item.exercises) {
+          exerciseListHtml = item.exercises.map(e => `
+            <div class="flex justify-between text-xs py-1 border-b border-zinc-800/40 last:border-0">
+              <span class="text-zinc-300 font-medium">${e.name}</span>
+              <span class="text-zinc-400 font-mono">${e.sets} sets • ${e.bestWeight}${item.unit || unit} × ${e.bestReps}</span>
+            </div>
+          `).join('');
+        }
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-emerald-400">${item.dayBadge}</span>
+                <span class="text-xs text-zinc-500">•</span>
+                <span class="text-xs text-zinc-400">${item.date}</span>
+              </div>
+              <h4 class="font-bold text-sm text-white mt-0.5">${item.dayTitle || 'Hypertrophy Session'}</h4>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-bold text-cyan-400 block">${item.volumeLoad ? item.volumeLoad.toLocaleString() : 0} ${item.unit || unit}</span>
+              <span class="text-[10px] text-zinc-500">${item.totalSets} completed sets</span>
+            </div>
+          </div>
+          <div class="bg-zinc-950/60 p-2.5 rounded-xl border border-zinc-800/60 mt-2">
+            ${exerciseListHtml}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // --- 9. 1RM CALCULATOR LOGIC ---
+    function update1RM() {
+      const weight = parseFloat(document.getElementById('calc-weight').value) || 0;
+      const reps = parseInt(document.getElementById('calc-reps').value) || 0;
+
+      if (weight > 0 && reps > 0) {
+        // Epley Formula: 1RM = Weight * (1 + Reps/30)
+        const oneRM = Math.round(weight * (1 + reps / 30));
+        document.getElementById('calc-result').innerHTML = `${oneRM} <span class="unit-text text-sm">${unit}</span>`;
+        document.getElementById('calc-75').innerText = `${Math.round(oneRM * 0.75)} ${unit}`;
+        document.getElementById('calc-85').innerText = `${Math.round(oneRM * 0.85)} ${unit}`;
+      } else {
+        document.getElementById('calc-result').innerHTML = `-- <span class="unit-text text-sm">${unit}</span>`;
+        document.getElementById('calc-75').innerText = `--`;
+        document.getElementById('calc-85').innerText = `--`;
+      }
+    }
+
+    document.getElementById('calc-weight').addEventListener('input', update1RM);
+    document.getElementById('calc-reps').addEventListener('input', update1RM);
+
+    // --- 10. UNIT TOGGLE (KG / LBS) ---
+    document.getElementById('unit-toggle-btn').addEventListener('click', () => {
+      unit = unit === 'KG' ? 'LBS' : 'KG';
+      localStorage.setItem('science_split_unit', unit);
+      document.getElementById('unit-label').innerText = unit;
+      document.querySelectorAll('.unit-text').forEach(el => el.innerText = unit);
+      renderWorkoutView();
+    });
+
+    // --- 11. NAVIGATION CONTROLLER ---
+    const views = {
+      workout: document.getElementById('view-workout'),
+      volume: document.getElementById('view-volume'),
+      history: document.getElementById('view-history'),
+      tools: document.getElementById('view-tools')
+    };
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetNav = btn.dataset.nav;
+
+        // Toggle active views
+        Object.keys(views).forEach(key => {
+          if (key === targetNav) {
+            views[key].classList.remove('hidden');
+          } else {
+            views[key].classList.add('hidden');
+          }
+        });
+
+        // Update nav styling
+        document.querySelectorAll('.nav-btn').forEach(b => {
+          if (b.dataset.nav === targetNav) {
+            b.classList.remove('text-zinc-500');
+            b.classList.add('text-emerald-400');
+          } else {
+            b.classList.remove('text-emerald-400');
+            b.classList.add('text-zinc-500');
+          }
+        });
+
+        // Refresh views upon navigation
+        if (targetNav === 'volume') renderVolumeView();
+        if (targetNav === 'history') renderHistoryView();
+      });
+    });
+
+    // --- 12. EXPORT & IMPORT DATA ---
+    document.getElementById('export-json-btn').addEventListener('click', () => {
+      const backup = {
+        unit: unit,
+        workoutHistory: workoutHistory,
+        exerciseHistory: exerciseHistory,
+        exportedAt: new Date().toISOString()
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `science_split_backup_${new Date().toISOString().slice(0, 10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    });
+
+    document.getElementById('import-json-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (parsed.workoutHistory) {
+            workoutHistory = parsed.workoutHistory;
+            localStorage.setItem('science_split_history', JSON.stringify(workoutHistory));
+          }
+          if (parsed.exerciseHistory) {
+            exerciseHistory = parsed.exerciseHistory;
+            localStorage.setItem('science_split_ex_history', JSON.stringify(exerciseHistory));
+          }
+          if (parsed.unit) {
+            unit = parsed.unit;
+            localStorage.setItem('science_split_unit', unit);
+            document.getElementById('unit-label').innerText = unit;
+          }
+          alert("Backup successfully restored!");
+          renderWorkoutView();
+          renderHistoryView();
+          renderVolumeView();
+        } catch (err) {
+          alert("Invalid JSON backup file.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('clear-all-data-btn').addEventListener('click', () => {
+      if (confirm("Are you sure you want to delete all workout history? This action cannot be undone.")) {
+        localStorage.removeItem('science_split_history');
+        localStorage.removeItem('science_split_ex_history');
+        workoutHistory = [];
+        exerciseHistory = {};
+        renderHistoryView();
+        renderVolumeView();
+        alert("Workout history cleared.");
+      }
+    });
+
+    // --- INITIAL RENDER ---
+    document.getElementById('unit-label').innerText = unit;
+    document.querySelectorAll('.unit-text').forEach(el => el.innerText = unit);
+    renderWorkoutView();
+  </script>
+</body>
+</html>
