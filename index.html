@@ -29,6 +29,21 @@
               purple: '#8b5cf6',
               amber: '#f59e0b',
             }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 3s ease-in-out infinite',
+            'shimmer': 'shimmer 2.5s infinite linear',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-4px)' },
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' },
+            }
           }
         }
       }
@@ -40,8 +55,9 @@
     * {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      box-sizing: border-box;
     }
-    input, textarea {
+    input, textarea, select {
       user-select: text;
     }
     body {
@@ -49,11 +65,15 @@
       color: #f4f4f5;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       padding-bottom: env(safe-area-inset-bottom, 20px);
+      overflow-x: hidden;
     }
     .safe-top {
       padding-top: env(safe-area-inset-top, 12px);
     }
-    /* Hide scrollbar for tabs */
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 12px);
+    }
+    /* Hide scrollbar for clean UI */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -61,15 +81,64 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    .active-set-row {
-      transition: background-color 0.2s ease, border-color 0.2s ease;
+
+    /* Keyframe Animations */
+    @keyframes viewFadeSlide {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .tab-view-animate {
+      animation: viewFadeSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
     }
     .completed-check {
-      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    @keyframes popIn {
-      0% { transform: scale(0.6); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.25); }
+      50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.55); }
+    }
+    .glow-emerald {
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+
+    /* Custom range slider thumb styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #27272a;
+      border-radius: 9999px;
+      height: 6px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #10b981;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+      transition: transform 0.15s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:active {
+      transform: scale(1.25);
+    }
+
+    .shimmer-card {
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0) 100%);
+      background-size: 200% 100%;
     }
   </style>
 </head>
@@ -79,7 +148,7 @@
   <header class="sticky top-0 z-40 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 safe-top">
     <div class="max-w-md mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-950">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-950/80 transform hover:rotate-6 transition">
           <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
@@ -87,18 +156,31 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             Science Split
-            <span class="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Hypertrophy</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse-slow">3-Day Pro</span>
           </h1>
-          <p class="text-[11px] text-zinc-400">Evidence-Based 3-Day Routine</p>
+          <p class="text-[11px] text-zinc-400 font-medium">Evidence-Based Hypertrophy</p>
         </div>
       </div>
 
       <div class="flex items-center space-x-2">
-        <button id="unit-toggle-btn" class="px-2.5 py-1 text-xs font-semibold rounded-md bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white transition">
+        <!-- Sound Toggle -->
+        <button id="sound-toggle-btn" title="Toggle Sound Beeps" class="p-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-emerald-400 transition active:scale-95">
+          <svg id="sound-icon-on" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/>
+          </svg>
+          <svg id="sound-icon-off" class="w-4 h-4 text-zinc-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12-6l-6 6m0-6l6 6"/>
+          </svg>
+        </button>
+
+        <!-- KG / LBS Unit -->
+        <button id="unit-toggle-btn" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white transition active:scale-95">
           <span id="unit-label">KG</span>
         </button>
-        <button id="global-timer-btn" class="p-1.5 rounded-md bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-emerald-400 relative transition">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+        <!-- Quick Rest Timer Launcher -->
+        <button id="global-timer-btn" title="Quick Rest Timer" class="p-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-emerald-400 relative transition active:scale-95">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span id="timer-active-badge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
@@ -110,37 +192,37 @@
   <!-- MAIN VIEWPORT CONTAINER -->
   <main class="flex-1 max-w-md w-full mx-auto p-4 pb-28">
 
-    <!-- VIEW 1: WORKOUT TAB -->
-    <section id="view-workout" class="space-y-4">
+    <!-- ==================== VIEW 1: WORKOUT TAB ==================== -->
+    <section id="view-workout" class="tab-view-animate space-y-4">
       
       <!-- Day Selector Pill Strip -->
-      <div class="flex items-center justify-between bg-zinc-900/80 p-1 rounded-xl border border-zinc-800/80 text-xs font-medium">
-        <button data-day="day1" class="day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold bg-emerald-500 text-zinc-950 shadow-md">
+      <div class="flex items-center justify-between bg-zinc-900/90 p-1.5 rounded-2xl border border-zinc-800 text-xs font-medium shadow-inner">
+        <button data-day="day1" class="day-tab-btn flex-1 py-2 rounded-xl text-center transition-all duration-200 font-semibold bg-emerald-500 text-zinc-950 shadow-md">
           Day A
           <span class="block text-[10px] font-normal opacity-85">Quad & Chest</span>
         </button>
-        <button data-day="day2" class="day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold text-zinc-400 hover:text-zinc-200">
+        <button data-day="day2" class="day-tab-btn flex-1 py-2 rounded-xl text-center transition-all duration-200 font-semibold text-zinc-400 hover:text-zinc-200">
           Day B
           <span class="block text-[10px] font-normal opacity-75">Hinge & Back</span>
         </button>
-        <button data-day="day3" class="day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold text-zinc-400 hover:text-zinc-200">
+        <button data-day="day3" class="day-tab-btn flex-1 py-2 rounded-xl text-center transition-all duration-200 font-semibold text-zinc-400 hover:text-zinc-200">
           Day C
           <span class="block text-[10px] font-normal opacity-75">Full & Arms</span>
         </button>
       </div>
 
       <!-- Workout Session Card Info -->
-      <div class="bg-gradient-to-br from-zinc-900 to-zinc-900/60 p-4 rounded-2xl border border-zinc-800 relative overflow-hidden">
+      <div class="bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-4 rounded-2xl border border-zinc-800 shadow-sm relative overflow-hidden">
         <div class="flex items-start justify-between">
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span id="workout-day-badge" class="text-xs font-bold uppercase tracking-wider text-emerald-400">Workout A</span>
-              <span class="text-xs text-zinc-500">•</span>
-              <span id="workout-target-summary" class="text-xs text-zinc-400">6 Exercises (18 sets)</span>
+              <span class="text-xs text-zinc-600">•</span>
+              <span id="workout-target-summary" class="text-xs text-zinc-400">6 Movements • 18 Sets</span>
             </div>
-            <h2 id="workout-day-title" class="text-lg font-bold text-white tracking-tight">Quad Dominant & Horizontal Push/Pull</h2>
+            <h2 id="workout-day-title" class="text-lg font-extrabold text-white tracking-tight">Quad Dominant & Horizontal Push/Pull</h2>
           </div>
-          <button id="reset-current-day-btn" title="Reset Today's Inputs" class="text-zinc-500 hover:text-zinc-300 p-1.5 rounded-lg bg-zinc-800/50">
+          <button id="reset-current-day-btn" title="Reset Today's Inputs" class="text-zinc-500 hover:text-zinc-300 p-2 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/50 transition">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
@@ -148,11 +230,13 @@
         </div>
 
         <!-- Science Highlight Banner -->
-        <div class="mt-3 text-xs bg-emerald-950/40 border border-emerald-500/20 text-emerald-300/90 rounded-lg p-2.5 flex items-start gap-2">
-          <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-          </svg>
-          <span id="workout-science-tip">Focus on the lengthened position: control the eccentric phase (2-3s) and pause at maximum stretch to maximize mechanical tension.</span>
+        <div class="mt-3.5 text-xs bg-emerald-950/40 border border-emerald-500/25 text-emerald-300 rounded-xl p-3 flex items-start gap-2.5">
+          <div class="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 flex-shrink-0 mt-0.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <span id="workout-science-tip" class="leading-relaxed">Focus on the lengthened position: control the eccentric phase (2-3s) and pause at maximum stretch to maximize mechanical tension.</span>
         </div>
       </div>
 
@@ -163,27 +247,195 @@
 
       <!-- Finish Workout Action Bar -->
       <div class="pt-4">
-        <button id="finish-workout-btn" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-zinc-950 font-bold text-base shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transform active:scale-[0.99] transition">
+        <button id="finish-workout-btn" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-zinc-950 font-extrabold text-base shadow-lg shadow-emerald-950/60 flex items-center justify-center gap-2 transform active:scale-[0.98] transition">
           <svg class="w-5 h-5 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
           </svg>
-          Finish Workout & Log Volume
+          Finish Workout & Calculate Evaluation
         </button>
       </div>
 
     </section>
 
-    <!-- VIEW 2: VOLUME & SCIENCE TAB -->
-    <section id="view-volume" class="hidden space-y-4">
-      <div class="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+    <!-- ==================== VIEW 2: EVALUATION TAB (NEW!) ==================== -->
+    <section id="view-evaluate" class="hidden tab-view-animate space-y-4">
+      
+      <!-- Top Hypertrophy Score Card with Animated Radial Ring -->
+      <div class="bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-5 rounded-3xl border border-zinc-800 shadow-xl relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              Science Hypertrophy Index
+            </span>
+            <h2 class="text-lg font-black text-white mt-0.5">Workout Evaluation</h2>
+          </div>
+          <div id="eval-grade-badge" class="px-3 py-1 rounded-xl text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            GRADE A+
+          </div>
+        </div>
+
+        <div class="flex items-center justify-around py-3 border-y border-zinc-800/80">
+          <!-- Circular Animated Score Meter -->
+          <div class="relative w-28 h-28 flex items-center justify-center">
+            <svg class="w-28 h-28 transform -rotate-90">
+              <circle cx="56" cy="56" r="46" stroke="currentColor" stroke-width="8" class="text-zinc-800" fill="none"/>
+              <circle id="eval-score-circle" cx="56" cy="56" r="46" stroke="currentColor" stroke-width="8" class="text-emerald-400 transition-all duration-1000 ease-out" stroke-dasharray="289" stroke-dashoffset="40" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="absolute text-center">
+              <span id="eval-score-num" class="text-3xl font-black text-white block tracking-tighter">92</span>
+              <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">/ 100 PTS</span>
+            </div>
+          </div>
+
+          <!-- Quick Evaluation Breakdown Stats -->
+          <div class="space-y-2 text-xs">
+            <div>
+              <div class="flex justify-between text-zinc-400 mb-0.5">
+                <span>Volume Adequacy</span>
+                <span id="stat-eval-volume" class="font-bold text-emerald-400">95%</span>
+              </div>
+              <div class="w-28 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div id="bar-eval-volume" class="bg-emerald-500 h-full rounded-full transition-all duration-700" style="width: 95%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-zinc-400 mb-0.5">
+                <span>RIR / Effort Discipline</span>
+                <span id="stat-eval-rir" class="font-bold text-cyan-400">90%</span>
+              </div>
+              <div class="w-28 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div id="bar-eval-rir" class="bg-cyan-500 h-full rounded-full transition-all duration-700" style="width: 90%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-zinc-400 mb-0.5">
+                <span>Progressive Overload</span>
+                <span id="stat-eval-overload" class="font-bold text-purple-400">88%</span>
+              </div>
+              <div class="w-28 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div id="bar-eval-overload" class="bg-purple-500 h-full rounded-full transition-all duration-700" style="width: 88%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evaluation Verdict Summary -->
+        <div id="eval-verdict-box" class="mt-4 p-3 rounded-2xl bg-zinc-800/40 border border-zinc-800 text-xs text-zinc-300 leading-relaxed">
+          <p id="eval-verdict-text">
+            Excellent stimulus! Your workouts adhere to optimal hypertrophy volume (10–20 weekly sets) and maintain the ideal 1–2 Reps In Reserve (RIR) zone without junk volume.
+          </p>
+        </div>
+      </div>
+
+      <!-- Interactive Pre/Post-Workout Readiness & Fatigue Evaluator -->
+      <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              Daily Readiness & CNS Recovery
+            </h3>
+            <p class="text-[11px] text-zinc-400">Assess your physical readiness before your next heavy lift</p>
+          </div>
+          <span id="readiness-score-badge" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            90% Ready
+          </span>
+        </div>
+
+        <!-- Slider 1: Muscle Soreness -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span class="text-zinc-300 font-medium">Muscle Soreness (DOMS)</span>
+            <span id="val-soreness" class="text-zinc-400 font-semibold">Low (Fresh)</span>
+          </div>
+          <input type="range" id="slider-soreness" min="1" max="5" value="1" class="w-full" />
+          <div class="flex justify-between text-[10px] text-zinc-500">
+            <span>1 (Fresh)</span>
+            <span>3 (Mild)</span>
+            <span>5 (Severely Sore)</span>
+          </div>
+        </div>
+
+        <!-- Slider 2: Sleep & Recovery -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span class="text-zinc-300 font-medium">Sleep Quality & Duration</span>
+            <span id="val-sleep" class="text-zinc-400 font-semibold">Good (7-8 hrs)</span>
+          </div>
+          <input type="range" id="slider-sleep" min="1" max="5" value="4" class="w-full" />
+          <div class="flex justify-between text-[10px] text-zinc-500">
+            <span>1 (&lt;5 hrs)</span>
+            <span>3 (6-7 hrs)</span>
+            <span>5 (8+ hrs Deep)</span>
+          </div>
+        </div>
+
+        <!-- Slider 3: Systemic Energy -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span class="text-zinc-300 font-medium">Systemic Energy & Focus</span>
+            <span id="val-energy" class="text-zinc-400 font-semibold">High Energy</span>
+          </div>
+          <input type="range" id="slider-energy" min="1" max="5" value="4" class="w-full" />
+          <div class="flex justify-between text-[10px] text-zinc-500">
+            <span>1 (Exhausted)</span>
+            <span>3 (Normal)</span>
+            <span>5 (Peak Drive)</span>
+          </div>
+        </div>
+
+        <!-- Live Readiness Advice Pill -->
+        <div id="readiness-advice-card" class="p-3 rounded-2xl bg-emerald-950/30 border border-emerald-500/20 text-xs text-emerald-300 flex items-start gap-2">
+          <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span id="readiness-advice-text">Prime physiological state. You are ready to push progressive overload on compound squats and bench presses today!</span>
+        </div>
+      </div>
+
+      <!-- Session Evaluation Selector & Auto-Feedback -->
+      <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Session Performance Deep-Dive
+          </h3>
+        </div>
+
+        <!-- Session Selector Dropdown -->
+        <div>
+          <label class="text-[11px] text-zinc-400 block mb-1">Select Logged Session</label>
+          <select id="eval-session-select" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <!-- Selected Session Analysis Box -->
+        <div id="eval-session-details" class="space-y-3 pt-2">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== VIEW 3: VOLUME & SCIENCE TAB ==================== -->
+    <section id="view-volume" class="hidden tab-view-animate space-y-4">
+      <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800">
         <h2 class="text-base font-bold text-white flex items-center gap-2">
           <svg class="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
           </svg>
           Weekly Volume Landmarks
         </h2>
-        <p class="text-xs text-zinc-400 mt-1">
-          Based on Schoenfeld & Israetel hypertrophy research: Target 10–20 hard sets/muscle/week across 2–3 weekly exposures.
+        <p class="text-xs text-zinc-400 mt-1 leading-relaxed">
+          Evidence-based guidelines (Schoenfeld & Israetel): Minimum Effective Volume (MEV) to Maximum Adaptive Volume (MAV).
         </p>
 
         <!-- Volume Bars List -->
@@ -193,33 +445,33 @@
       </div>
 
       <!-- Science Hypertrophy Principles Card -->
-      <div class="bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800 space-y-3">
-        <h3 class="text-sm font-bold text-zinc-200 uppercase tracking-wider text-xs">Science Hypertrophy Pillars</h3>
+      <div class="bg-zinc-900/70 p-5 rounded-3xl border border-zinc-800 space-y-3">
+        <h3 class="text-xs font-bold text-zinc-200 uppercase tracking-wider">Science Hypertrophy Pillars</h3>
         
-        <div class="border-l-2 border-emerald-500 pl-3 py-0.5">
+        <div class="border-l-2 border-emerald-500 pl-3 py-1 bg-zinc-950/40 rounded-r-xl">
           <p class="text-xs font-semibold text-emerald-400">1. Stretch-Mediated Hypertrophy</p>
-          <p class="text-[11px] text-zinc-400 mt-0.5">Training a muscle under high passive tension at long muscle lengths produces superior sarcomere addition in series.</p>
+          <p class="text-[11px] text-zinc-400 mt-0.5">High mechanical tension at long muscle lengths stimulates titin kinase and longitudinal sarcomere addition.</p>
         </div>
 
-        <div class="border-l-2 border-cyan-500 pl-3 py-0.5">
+        <div class="border-l-2 border-cyan-500 pl-3 py-1 bg-zinc-950/40 rounded-r-xl">
           <p class="text-xs font-semibold text-cyan-400">2. Proximity to Failure (RIR 1-2)</p>
-          <p class="text-[11px] text-zinc-400 mt-0.5">Full motor unit recruitment occurs when taking sets to 0–2 Reps in Reserve (RIR). Excessive failure adds disproportionate fatigue.</p>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Maximum high-threshold motor unit recruitment is achieved at 1–2 RIR with drastically less central nervous fatigue than chronic failure.</p>
         </div>
 
-        <div class="border-l-2 border-purple-500 pl-3 py-0.5">
-          <p class="text-xs font-semibold text-purple-400">3. Inter-Set Rest (2-3+ Minutes)</p>
-          <p class="text-[11px] text-zinc-400 mt-0.5">Resting 2–3 minutes for compound movements yields superior volume load and muscle growth compared to rushed 60s rest.</p>
+        <div class="border-l-2 border-purple-500 pl-3 py-1 bg-zinc-950/40 rounded-r-xl">
+          <p class="text-xs font-semibold text-purple-400">3. Scientific Rest Intervals (2-3+ Min)</p>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Resting 2–3 minutes on compounds permits higher sustained motor unit output and superior muscle growth compared to 60s rest.</p>
         </div>
 
-        <div class="border-l-2 border-amber-500 pl-3 py-0.5">
-          <p class="text-xs font-semibold text-amber-400">4. Progressive Overload</p>
-          <p class="text-[11px] text-zinc-400 mt-0.5">Continuously beat either reps or load over time with identical execution standards and controlled eccentrics.</p>
+        <div class="border-l-2 border-amber-500 pl-3 py-1 bg-zinc-950/40 rounded-r-xl">
+          <p class="text-xs font-semibold text-amber-400">4. Progressive Overload Velocity</p>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Gradually add reps or weight while preserving immaculate form and 2s controlled eccentric tempo.</p>
         </div>
       </div>
     </section>
 
-    <!-- VIEW 3: HISTORY TAB -->
-    <section id="view-history" class="hidden space-y-4">
+    <!-- ==================== VIEW 4: HISTORY TAB ==================== -->
+    <section id="view-history" class="hidden tab-view-animate space-y-4">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-base font-bold text-white">Workout Log</h2>
@@ -233,10 +485,10 @@
       </div>
     </section>
 
-    <!-- VIEW 4: TOOLS & SETTINGS TAB -->
-    <section id="view-tools" class="hidden space-y-4">
+    <!-- ==================== VIEW 5: TOOLS & SETTINGS TAB ==================== -->
+    <section id="view-tools" class="hidden tab-view-animate space-y-4">
       <!-- 1RM Calculator -->
-      <div class="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+      <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800">
         <h2 class="text-sm font-bold text-white flex items-center gap-2 mb-2">
           <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -246,75 +498,75 @@
         <div class="grid grid-cols-2 gap-3 mt-3">
           <div>
             <label class="text-[11px] text-zinc-400 block mb-1">Weight (<span class="unit-text">KG</span>)</label>
-            <input type="number" id="calc-weight" placeholder="100" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+            <input type="number" id="calc-weight" placeholder="100" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
             <label class="text-[11px] text-zinc-400 block mb-1">Reps Performed</label>
-            <input type="number" id="calc-reps" placeholder="8" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
+            <input type="number" id="calc-reps" placeholder="8" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
-        <div class="mt-4 p-3 bg-zinc-800/60 rounded-xl border border-zinc-700/60 flex items-center justify-between">
+        <div class="mt-4 p-3.5 bg-zinc-800/60 rounded-2xl border border-zinc-700/60 flex items-center justify-between">
           <div>
             <span class="text-xs text-zinc-400">Estimated 1RM</span>
-            <div class="text-xl font-bold text-emerald-400" id="calc-result">-- <span class="unit-text text-sm">KG</span></div>
+            <div class="text-xl font-black text-emerald-400" id="calc-result">-- <span class="unit-text text-sm">KG</span></div>
           </div>
-          <div class="text-right text-xs text-zinc-400">
-            <div>75% 1RM: <span id="calc-75" class="font-semibold text-zinc-200">--</span></div>
-            <div>85% 1RM: <span id="calc-85" class="font-semibold text-zinc-200">--</span></div>
+          <div class="text-right text-xs text-zinc-400 space-y-0.5">
+            <div>75% 1RM (Hypertrophy): <span id="calc-75" class="font-bold text-zinc-200">--</span></div>
+            <div>85% 1RM (Strength): <span id="calc-85" class="font-bold text-zinc-200">--</span></div>
           </div>
         </div>
       </div>
 
       <!-- Backup & Restore -->
-      <div class="bg-zinc-900 p-4 rounded-2xl border border-zinc-800 space-y-3">
+      <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 space-y-3">
         <h2 class="text-sm font-bold text-white flex items-center gap-2">
           <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
           </svg>
           Data Management
         </h2>
-        <p class="text-xs text-zinc-400">All data is saved locally on your phone. You can export a JSON backup or import anytime.</p>
+        <p class="text-xs text-zinc-400">All logs are safely saved in local storage on this device. You can export a JSON backup anytime.</p>
         <div class="flex gap-2 pt-1">
-          <button id="export-json-btn" class="flex-1 py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-semibold text-zinc-200 transition">
+          <button id="export-json-btn" class="flex-1 py-3 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-semibold text-zinc-200 transition active:scale-95">
             Export JSON
           </button>
-          <label class="flex-1 py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-semibold text-zinc-200 transition text-center cursor-pointer">
+          <label class="flex-1 py-3 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-semibold text-zinc-200 transition text-center cursor-pointer active:scale-95">
             Import JSON
             <input type="file" id="import-json-file" accept=".json" class="hidden" />
           </label>
         </div>
-        <button id="clear-all-data-btn" class="w-full py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition mt-2">
+        <button id="clear-all-data-btn" class="w-full py-2.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition mt-2">
           Clear All Workout History
         </button>
       </div>
 
-      <div class="text-center text-xs text-zinc-500 pt-2">
+      <div class="text-center text-xs text-zinc-500 pt-2 font-medium">
         Science Split Tracker • 100% Offline Capable • PWA Ready
       </div>
     </section>
 
   </main>
 
-  <!-- FLOATING REST TIMER PILL (Visible when timer is active or triggered) -->
-  <div id="rest-timer-bar" class="hidden fixed bottom-20 left-4 right-4 max-w-md mx-auto z-40 bg-zinc-900/95 backdrop-blur-lg border border-emerald-500/50 rounded-2xl p-3 shadow-2xl shadow-emerald-950/80">
+  <!-- FLOATING REST TIMER PILL (Animated) -->
+  <div id="rest-timer-bar" class="hidden fixed bottom-20 left-4 right-4 max-w-md mx-auto z-40 bg-zinc-900/95 backdrop-blur-xl border border-emerald-500/50 rounded-3xl p-3.5 shadow-2xl shadow-emerald-950/80 transition-all duration-300">
     <div class="flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <!-- Circular mini progress -->
-        <div class="relative w-10 h-10 flex items-center justify-center">
-          <svg class="w-10 h-10 transform -rotate-90">
-            <circle cx="20" cy="20" r="16" stroke="currentColor" stroke-width="3" class="text-zinc-800" fill="none"/>
-            <circle id="timer-svg-circle" cx="20" cy="20" r="16" stroke="currentColor" stroke-width="3" class="text-emerald-400 transition-all duration-300" stroke-dasharray="100" stroke-dashoffset="0" fill="none" stroke-linecap="round"/>
+      <div class="flex items-center space-x-3.5">
+        <!-- Circular mini progress with smooth stroke -->
+        <div class="relative w-11 h-11 flex items-center justify-center">
+          <svg class="w-11 h-11 transform -rotate-90">
+            <circle cx="22" cy="22" r="18" stroke="currentColor" stroke-width="3.5" class="text-zinc-800" fill="none"/>
+            <circle id="timer-svg-circle" cx="22" cy="22" r="18" stroke="currentColor" stroke-width="3.5" class="text-emerald-400 transition-all duration-300" stroke-dasharray="113" stroke-dashoffset="0" fill="none" stroke-linecap="round"/>
           </svg>
-          <span id="timer-seconds-text" class="absolute text-xs font-extrabold text-white">90s</span>
+          <span id="timer-seconds-text" class="absolute text-xs font-black text-white">90s</span>
         </div>
         <div>
-          <span class="text-xs font-bold text-white block">Hypertrophy Rest</span>
-          <span id="timer-exercise-name" class="text-[11px] text-zinc-400 truncate max-w-[140px] block">Next Set Ready In</span>
+          <span class="text-xs font-extrabold text-white block">Hypertrophy Rest</span>
+          <span id="timer-exercise-name" class="text-[11px] text-zinc-400 truncate max-w-[130px] block">Next Set Ready In</span>
         </div>
       </div>
-      <div class="flex items-center space-x-1.5">
-        <button id="timer-add-30" class="px-2 py-1 text-xs font-medium rounded-lg bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700">+30s</button>
-        <button id="timer-stop-btn" class="p-1.5 rounded-lg bg-zinc-800 text-zinc-400 hover:text-red-400 border border-zinc-700">
+      <div class="flex items-center space-x-2">
+        <button id="timer-add-30" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 active:scale-95 transition">+30s</button>
+        <button id="timer-stop-btn" class="p-2 rounded-xl bg-zinc-800 text-zinc-400 hover:text-red-400 border border-zinc-700 active:scale-95 transition">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -323,65 +575,81 @@
     </div>
   </div>
 
-  <!-- BOTTOM NAVIGATION BAR -->
-  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 safe-bottom">
-    <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
-      <button data-nav="workout" class="nav-btn flex flex-col items-center justify-center py-1 text-emerald-400">
+  <!-- BOTTOM 5-TAB NAVIGATION BAR -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800/80 px-2 py-2 safe-bottom">
+    <div class="max-w-md mx-auto grid grid-cols-5 gap-0.5">
+      <!-- 1: Workout -->
+      <button data-nav="workout" class="nav-btn flex flex-col items-center justify-center py-1 text-emerald-400 transition transform active:scale-95">
         <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
-        <span class="text-[10px] font-semibold">Workout</span>
+        <span class="text-[9px] font-bold">Workout</span>
       </button>
 
-      <button data-nav="volume" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300">
+      <!-- 2: Evaluate (NEW!) -->
+      <button data-nav="evaluate" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300 transition transform active:scale-95">
         <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
-        <span class="text-[10px] font-medium">Volume</span>
+        <span class="text-[9px] font-bold">Evaluate</span>
       </button>
 
-      <button data-nav="history" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300">
+      <!-- 3: Volume -->
+      <button data-nav="volume" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300 transition transform active:scale-95">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+        </svg>
+        <span class="text-[9px] font-bold">Volume</span>
+      </button>
+
+      <!-- 4: History -->
+      <button data-nav="history" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300 transition transform active:scale-95">
         <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <span class="text-[10px] font-medium">History</span>
+        <span class="text-[9px] font-bold">History</span>
       </button>
 
-      <button data-nav="tools" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300">
+      <!-- 5: Tools -->
+      <button data-nav="tools" class="nav-btn flex flex-col items-center justify-center py-1 text-zinc-500 hover:text-zinc-300 transition transform active:scale-95">
         <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
-        <span class="text-[10px] font-medium">Tools</span>
+        <span class="text-[9px] font-bold">Tools</span>
       </button>
     </div>
   </nav>
 
-  <!-- MODAL: WORKOUT COMPLETE SUMMARY -->
-  <div id="summary-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative">
-      <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+  <!-- MODAL: WORKOUT COMPLETE SUMMARY WITH ANIMATED TROPHY -->
+  <div id="summary-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative tab-view-animate">
+      <div class="w-16 h-16 rounded-3xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30 animate-bounce">
         <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
 
-      <h3 class="text-xl font-extrabold text-white mb-1">Stimulus Complete!</h3>
-      <p class="text-xs text-zinc-400 mb-6">Scientific stimulus achieved. Time for protein synthesis and recovery.</p>
+      <h3 class="text-xl font-black text-white mb-1 tracking-tight">Stimulus Complete!</h3>
+      <p class="text-xs text-zinc-400 mb-6">Scientific stimulus achieved. Time for protein synthesis and rest.</p>
 
       <div class="grid grid-cols-2 gap-3 mb-6">
-        <div class="bg-zinc-800/70 p-3 rounded-2xl border border-zinc-700/50">
+        <div class="bg-zinc-800/80 p-3 rounded-2xl border border-zinc-700/60">
           <span class="text-[10px] uppercase font-bold text-zinc-400">Total Sets</span>
-          <p id="modal-sets-val" class="text-xl font-extrabold text-emerald-400">18</p>
+          <p id="modal-sets-val" class="text-2xl font-black text-emerald-400">18</p>
         </div>
-        <div class="bg-zinc-800/70 p-3 rounded-2xl border border-zinc-700/50">
+        <div class="bg-zinc-800/80 p-3 rounded-2xl border border-zinc-700/60">
           <span class="text-[10px] uppercase font-bold text-zinc-400">Volume Load</span>
-          <p id="modal-tonnage-val" class="text-xl font-extrabold text-cyan-400">0 <span class="text-xs unit-text">KG</span></p>
+          <p id="modal-tonnage-val" class="text-2xl font-black text-cyan-400">0 <span class="text-xs unit-text">KG</span></p>
         </div>
       </div>
 
-      <button id="modal-close-btn" class="w-full py-3.5 rounded-xl bg-emerald-500 text-zinc-950 font-bold hover:bg-emerald-400 transition">
-        Save & Return
+      <button id="modal-view-eval-btn" class="w-full mb-2 py-3.5 rounded-2xl bg-emerald-500 text-zinc-950 font-black hover:bg-emerald-400 transition active:scale-95 shadow-lg shadow-emerald-950/60">
+        View Science Evaluation
+      </button>
+      <button id="modal-close-btn" class="w-full py-2.5 rounded-xl bg-zinc-800 text-zinc-300 font-semibold hover:bg-zinc-700 transition text-xs">
+        Close & Continue
       </button>
     </div>
   </div>
@@ -602,6 +870,7 @@
     // --- 2. STATE INITIALIZATION ---
     let currentDayKey = 'day1';
     let unit = localStorage.getItem('science_split_unit') || 'KG';
+    let soundEnabled = localStorage.getItem('science_split_sound') !== 'false';
     let currentWorkoutData = JSON.parse(localStorage.getItem('science_split_active_' + currentDayKey)) || null;
     let workoutHistory = JSON.parse(localStorage.getItem('science_split_history')) || [];
     let exerciseHistory = JSON.parse(localStorage.getItem('science_split_ex_history')) || {};
@@ -609,6 +878,7 @@
     // Web Audio Context for rest timer chime
     let audioCtx = null;
     function playBeep(freq = 880, duration = 0.2) {
+      if (!soundEnabled) return;
       try {
         if (!audioCtx) {
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -622,7 +892,7 @@
         gain.connect(audioCtx.destination);
         osc.frequency.value = freq;
         osc.type = 'sine';
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
@@ -630,6 +900,26 @@
         console.warn('Audio not available', e);
       }
     }
+
+    // Toggle sound
+    document.getElementById('sound-toggle-btn').addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('science_split_sound', soundEnabled);
+      updateSoundUI();
+    });
+
+    function updateSoundUI() {
+      const onIcon = document.getElementById('sound-icon-on');
+      const offIcon = document.getElementById('sound-icon-off');
+      if (soundEnabled) {
+        onIcon.classList.remove('hidden');
+        offIcon.classList.add('hidden');
+      } else {
+        onIcon.classList.add('hidden');
+        offIcon.classList.remove('hidden');
+      }
+    }
+    updateSoundUI();
 
     // --- 3. REST TIMER ENGINE ---
     let timerInterval = null;
@@ -663,7 +953,7 @@
           setTimeout(() => {
             bar.classList.add('hidden');
             badge.classList.add('hidden');
-          }, 3000);
+          }, 3500);
         }
       }, 1000);
     }
@@ -676,8 +966,9 @@
       const secs = timerRemaining % 60;
       textEl.innerText = mins > 0 ? `${mins}:${secs < 10 ? '0' : ''}${secs}` : `${secs}s`;
 
-      const progress = timerTotal > 0 ? (timerRemaining / timerTotal) * 100 : 0;
-      circleEl.style.strokeDashoffset = (100 - progress).toString();
+      // Circumference is 2 * PI * 18 = ~113.1
+      const progress = timerTotal > 0 ? (timerRemaining / timerTotal) * 113.1 : 0;
+      circleEl.style.strokeDashoffset = (113.1 - progress).toString();
     }
 
     document.getElementById('timer-stop-btn').addEventListener('click', () => {
@@ -714,7 +1005,6 @@
         dayKey: dayKey,
         startedAt: new Date().toISOString(),
         exercises: routine.exercises.map(ex => {
-          // Check if previous data exists for smart auto-fill
           const prev = exerciseHistory[ex.id] || null;
           const defaultSetsArr = [];
           for (let i = 0; i < ex.defaultSets; i++) {
@@ -752,9 +1042,9 @@
       // Update Day Tabs Active UI
       document.querySelectorAll('.day-tab-btn').forEach(btn => {
         if (btn.dataset.day === currentDayKey) {
-          btn.className = 'day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold bg-emerald-500 text-zinc-950 shadow-md';
+          btn.className = 'day-tab-btn flex-1 py-2 rounded-xl text-center transition font-semibold bg-emerald-500 text-zinc-950 shadow-md transform scale-[1.02]';
         } else {
-          btn.className = 'day-tab-btn flex-1 py-2 rounded-lg text-center transition font-semibold text-zinc-400 hover:text-zinc-200';
+          btn.className = 'day-tab-btn flex-1 py-2 rounded-xl text-center transition font-semibold text-zinc-400 hover:text-zinc-200';
         }
       });
 
@@ -770,13 +1060,13 @@
         const prevRecord = exerciseHistory[blueprint.id] || null;
 
         const card = document.createElement('div');
-        card.className = 'bg-zinc-900 rounded-2xl border border-zinc-800/90 overflow-hidden shadow-sm';
+        card.className = 'bg-zinc-900 rounded-2xl border border-zinc-800/90 overflow-hidden shadow-sm hover:border-zinc-700/80 transition-all';
 
         let prevBadgeHtml = '';
         if (prevRecord) {
           prevBadgeHtml = `
-            <span class="text-[11px] font-medium text-emerald-400/90 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/20">
-              Last: ${prevRecord.weight}${unit} × ${prevRecord.reps}r
+            <span class="text-[11px] font-semibold text-emerald-400/90 bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-500/25 flex items-center gap-1">
+              <span>Last:</span> <strong class="text-white">${prevRecord.weight}${unit} × ${prevRecord.reps}r</strong>
             </span>
           `;
         }
@@ -784,23 +1074,23 @@
         let setsHtml = '';
         exData.sets.forEach((s, sIdx) => {
           setsHtml += `
-            <tr class="border-b border-zinc-800/60 text-xs active-set-row ${s.completed ? 'bg-emerald-950/15' : ''}">
+            <tr class="border-b border-zinc-800/60 text-xs active-set-row ${s.completed ? 'bg-emerald-950/20' : ''}">
               <td class="py-2.5 px-3 font-semibold text-zinc-400 text-center w-10">
                 ${s.setNum}
               </td>
               <td class="py-2.5 px-2">
                 <input type="number" step="0.5" placeholder="0" value="${s.weight}" 
                   onchange="updateSetData('${currentDayKey}', ${exIdx}, ${sIdx}, 'weight', this.value)"
-                  class="w-full bg-zinc-800/80 border border-zinc-700/80 rounded-lg py-1.5 px-2 text-center text-white font-medium focus:outline-none focus:border-emerald-500 focus:bg-zinc-800" />
+                  class="w-full bg-zinc-800/80 border border-zinc-700/80 rounded-lg py-1.5 px-2 text-center text-white font-medium focus:outline-none focus:border-emerald-500 focus:bg-zinc-800 transition" />
               </td>
               <td class="py-2.5 px-2">
                 <input type="number" placeholder="${blueprint.targetReps.split('-')[0]}" value="${s.reps}" 
                   onchange="updateSetData('${currentDayKey}', ${exIdx}, ${sIdx}, 'reps', this.value)"
-                  class="w-full bg-zinc-800/80 border border-zinc-700/80 rounded-lg py-1.5 px-2 text-center text-white font-medium focus:outline-none focus:border-emerald-500 focus:bg-zinc-800" />
+                  class="w-full bg-zinc-800/80 border border-zinc-700/80 rounded-lg py-1.5 px-2 text-center text-white font-medium focus:outline-none focus:border-emerald-500 focus:bg-zinc-800 transition" />
               </td>
               <td class="py-2.5 px-2 w-16">
                 <select onchange="updateSetData('${currentDayKey}', ${exIdx}, ${sIdx}, 'rir', this.value)"
-                  class="w-full bg-zinc-800/80 border border-zinc-700/80 rounded-lg py-1.5 px-1 text-center text-zinc-200 text-xs focus:outline-none focus:border-emerald-500">
+                  class="w-full bg-zinc-800/80 border border-zinc-700/80 rounded-lg py-1.5 px-1 text-center text-zinc-200 text-xs focus:outline-none focus:border-emerald-500 transition">
                   <option value="0" ${s.rir == 0 ? 'selected' : ''}>0 RIR</option>
                   <option value="1" ${s.rir == 1 ? 'selected' : ''}>1 RIR</option>
                   <option value="2" ${s.rir == 2 ? 'selected' : ''}>2 RIR</option>
@@ -809,7 +1099,7 @@
               </td>
               <td class="py-2.5 px-3 text-center w-12">
                 <button onclick="toggleSetComplete('${currentDayKey}', ${exIdx}, ${sIdx}, '${blueprint.name}', ${blueprint.restSeconds})" 
-                  class="w-8 h-8 rounded-xl flex items-center justify-center transition border ${s.completed ? 'bg-emerald-500 border-emerald-400 text-zinc-950 completed-check' : 'bg-zinc-800/80 border-zinc-700 text-zinc-500 hover:text-zinc-300'}">
+                  class="w-8 h-8 rounded-xl flex items-center justify-center transition border active:scale-90 ${s.completed ? 'bg-emerald-500 border-emerald-400 text-zinc-950 completed-check shadow-md shadow-emerald-950' : 'bg-zinc-800/80 border-zinc-700 text-zinc-500 hover:text-zinc-300'}">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                   </svg>
@@ -833,7 +1123,7 @@
               <div>${prevBadgeHtml}</div>
             </div>
             
-            <p class="text-[11px] text-zinc-400 bg-zinc-950/60 p-2 rounded-lg mt-2 border border-zinc-800/60 flex items-center gap-1.5">
+            <p class="text-[11px] text-zinc-400 bg-zinc-950/60 p-2.5 rounded-xl mt-2 border border-zinc-800/60 flex items-center gap-1.5">
               <span class="text-cyan-400 font-semibold">Science Cue:</span> ${blueprint.scienceNote}
             </p>
           </div>
@@ -854,10 +1144,10 @@
           </table>
 
           <div class="p-2.5 bg-zinc-900/60 flex justify-between items-center text-xs">
-            <button onclick="addSetToExercise('${currentDayKey}', ${exIdx})" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 px-2 py-1 rounded hover:bg-emerald-500/10 transition">
+            <button onclick="addSetToExercise('${currentDayKey}', ${exIdx})" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 px-2 py-1 rounded-lg hover:bg-emerald-500/10 transition active:scale-95">
               + Add Set
             </button>
-            <button onclick="removeSetFromExercise('${currentDayKey}', ${exIdx})" class="text-xs text-zinc-500 hover:text-red-400 px-2 py-1 transition">
+            <button onclick="removeSetFromExercise('${currentDayKey}', ${exIdx})" class="text-xs text-zinc-500 hover:text-red-400 px-2 py-1 transition active:scale-95">
               Remove Set
             </button>
           </div>
@@ -883,7 +1173,7 @@
       if (setObj.completed) {
         if (!setObj.weight) setObj.weight = 0;
         if (!setObj.reps) setObj.reps = 8;
-        playBeep(523, 0.1);
+        playBeep(523, 0.12);
         startRestTimer(restSeconds || 90, exerciseName);
       }
 
@@ -938,6 +1228,8 @@
     document.getElementById('finish-workout-btn').addEventListener('click', () => {
       let completedSetsCount = 0;
       let totalVolumeLoad = 0;
+      let rirSum = 0;
+      let overloadCount = 0;
 
       const routine = ROUTINES[currentDayKey];
       const completedExercisesSummary = [];
@@ -948,17 +1240,37 @@
 
         if (completedSets.length > 0) {
           const blueprint = routine.exercises.find(e => e.id === ex.id) || routine.exercises[idx];
-          // Record best set for history
+          const prevRecord = exerciseHistory[blueprint.id] || null;
+
           let bestSet = completedSets[0];
           completedSets.forEach(s => {
             const load = (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0);
             totalVolumeLoad += load;
+            rirSum += (parseInt(s.rir) || 0);
+
             if ((parseFloat(s.weight) || 0) >= (parseFloat(bestSet.weight) || 0)) {
               bestSet = s;
             }
           });
 
-          // Save last record to exerciseHistory for progressive overload comparison
+          // Check if overload occurred compared to previous record
+          let overloaded = false;
+          if (prevRecord) {
+            const curW = parseFloat(bestSet.weight) || 0;
+            const curR = parseInt(bestSet.reps) || 0;
+            const prevW = parseFloat(prevRecord.weight) || 0;
+            const prevR = parseInt(prevRecord.reps) || 0;
+            if (curW > prevW || (curW === prevW && curR > prevR)) {
+              overloadCount++;
+              overloaded = true;
+            }
+          } else {
+            // Baseline established
+            overloadCount++;
+            overloaded = true;
+          }
+
+          // Save to exerciseHistory for progressive overload comparison
           exerciseHistory[blueprint.id] = {
             weight: bestSet.weight,
             reps: bestSet.reps,
@@ -970,7 +1282,8 @@
             muscleGroup: blueprint.muscleGroup,
             sets: completedSets.length,
             bestWeight: bestSet.weight,
-            bestReps: bestSet.reps
+            bestReps: bestSet.reps,
+            overloaded: overloaded
           });
         }
       });
@@ -989,6 +1302,8 @@
         dayTitle: routine.title,
         totalSets: completedSetsCount,
         volumeLoad: Math.round(totalVolumeLoad),
+        avgRIR: (rirSum / completedSetsCount).toFixed(1),
+        overloadRate: Math.round((overloadCount / completedExercisesSummary.length) * 100),
         unit: unit,
         exercises: completedExercisesSummary
       };
@@ -1004,8 +1319,8 @@
       // Trigger Confetti!
       if (window.confetti) {
         window.confetti({
-          particleCount: 100,
-          spread: 70,
+          particleCount: 120,
+          spread: 80,
           origin: { y: 0.6 }
         });
       }
@@ -1018,19 +1333,207 @@
       renderWorkoutView();
       renderHistoryView();
       renderVolumeView();
+      renderEvaluationView();
     });
 
     document.getElementById('modal-close-btn').addEventListener('click', () => {
       document.getElementById('summary-modal').classList.add('hidden');
     });
 
-    // --- 7. VOLUME TAB CALCULATOR ---
+    document.getElementById('modal-view-eval-btn').addEventListener('click', () => {
+      document.getElementById('summary-modal').classList.add('hidden');
+      switchTab('evaluate');
+    });
+
+    // --- 7. EVALUATION PAGE ENGINE (NEW FEATURE) ---
+    function renderEvaluationView() {
+      // 1. Calculate overall Hypertrophy Index
+      let totalVolumeScore = 90;
+      let totalRIRScore = 88;
+      let totalOverloadScore = 85;
+
+      if (workoutHistory.length > 0) {
+        const latest = workoutHistory[0];
+        // Volume adequacy: Ideal single session sets is 15-20 sets
+        const setDelta = Math.abs(latest.totalSets - 18);
+        totalVolumeScore = Math.max(70, Math.min(99, 98 - (setDelta * 3)));
+
+        // RIR score: optimal avg RIR is between 1.0 and 2.2
+        const rirVal = parseFloat(latest.avgRIR) || 1.8;
+        if (rirVal >= 1.0 && rirVal <= 2.2) {
+          totalRIRScore = 96;
+        } else if (rirVal < 1.0) {
+          totalRIRScore = 82; // too much failure
+        } else {
+          totalRIRScore = 80; // too easy / under-stimulating
+        }
+
+        totalOverloadScore = Math.max(75, Math.min(100, latest.overloadRate || 85));
+      }
+
+      const overallScore = Math.round((totalVolumeScore * 0.35) + (totalRIRScore * 0.35) + (totalOverloadScore * 0.30));
+
+      // Update circular meter
+      document.getElementById('eval-score-num').innerText = overallScore;
+      const circleEl = document.getElementById('eval-score-circle');
+      // Circumference = 2 * PI * 46 = ~289
+      const offset = 289 - (289 * (overallScore / 100));
+      circleEl.style.strokeDashoffset = offset.toString();
+
+      // Grade Badge
+      const gradeBadge = document.getElementById('eval-grade-badge');
+      if (overallScore >= 92) {
+        gradeBadge.innerText = 'GRADE A+';
+        gradeBadge.className = 'px-3 py-1 rounded-xl text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+      } else if (overallScore >= 85) {
+        gradeBadge.innerText = 'GRADE A';
+        gradeBadge.className = 'px-3 py-1 rounded-xl text-xs font-black bg-cyan-500/20 text-cyan-400 border border-cyan-500/30';
+      } else {
+        gradeBadge.innerText = 'GRADE B';
+        gradeBadge.className = 'px-3 py-1 rounded-xl text-xs font-black bg-amber-500/20 text-amber-400 border border-amber-500/30';
+      }
+
+      // Mini stats
+      document.getElementById('stat-eval-volume').innerText = totalVolumeScore + '%';
+      document.getElementById('bar-eval-volume').style.width = totalVolumeScore + '%';
+
+      document.getElementById('stat-eval-rir').innerText = totalRIRScore + '%';
+      document.getElementById('bar-eval-rir').style.width = totalRIRScore + '%';
+
+      document.getElementById('stat-eval-overload').innerText = totalOverloadScore + '%';
+      document.getElementById('bar-eval-overload').style.width = totalOverloadScore + '%';
+
+      // Populate Session Select Dropdown
+      const selectEl = document.getElementById('eval-session-select');
+      selectEl.innerHTML = '';
+
+      if (workoutHistory.length === 0) {
+        selectEl.innerHTML = '<option value="">No recorded sessions yet (Complete Workout A to analyze)</option>';
+        document.getElementById('eval-session-details').innerHTML = `
+          <div class="text-center py-6 text-zinc-500 text-xs">
+            Complete a workout session to unlock in-depth scientific coaching recommendations!
+          </div>
+        `;
+      } else {
+        workoutHistory.forEach((s, idx) => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.innerText = `${s.date} - ${s.dayBadge}: ${s.dayTitle} (${s.totalSets} sets)`;
+          selectEl.appendChild(opt);
+        });
+
+        // Trigger change for first item
+        updateSessionEvaluationDetails(workoutHistory[0]);
+      }
+    }
+
+    document.getElementById('eval-session-select').addEventListener('change', (e) => {
+      const selectedId = e.target.value;
+      const found = workoutHistory.find(w => w.id === selectedId);
+      if (found) updateSessionEvaluationDetails(found);
+    });
+
+    function updateSessionEvaluationDetails(session) {
+      const container = document.getElementById('eval-session-details');
+      
+      let exerciseInsights = '';
+      if (session.exercises) {
+        exerciseInsights = session.exercises.map(ex => {
+          return `
+            <div class="p-2.5 bg-zinc-800/50 rounded-xl border border-zinc-700/50 flex items-center justify-between text-xs">
+              <div>
+                <span class="font-bold text-zinc-200 block">${ex.name}</span>
+                <span class="text-[11px] text-zinc-400">${ex.sets} sets • Peak ${ex.bestWeight}${session.unit} × ${ex.bestReps} reps</span>
+              </div>
+              <div>
+                ${ex.overloaded ? 
+                  '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">📈 Overload Achieved</span>' : 
+                  '<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-700/40 text-zinc-400">Baseline Maintained</span>'}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      container.innerHTML = `
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-zinc-800/60 p-2.5 rounded-xl border border-zinc-700/40 text-center">
+            <span class="text-[10px] text-zinc-400 uppercase font-bold block">Tonnage</span>
+            <span class="text-sm font-black text-cyan-400">${session.volumeLoad ? session.volumeLoad.toLocaleString() : 0} ${session.unit}</span>
+          </div>
+          <div class="bg-zinc-800/60 p-2.5 rounded-xl border border-zinc-700/40 text-center">
+            <span class="text-[10px] text-zinc-400 uppercase font-bold block">Avg Effort</span>
+            <span class="text-sm font-black text-emerald-400">${session.avgRIR || '2.0'} RIR</span>
+          </div>
+          <div class="bg-zinc-800/60 p-2.5 rounded-xl border border-zinc-700/40 text-center">
+            <span class="text-[10px] text-zinc-400 uppercase font-bold block">Overload Rate</span>
+            <span class="text-sm font-black text-purple-400">${session.overloadRate || 100}%</span>
+          </div>
+        </div>
+
+        <div class="space-y-1.5 pt-1">
+          <span class="text-[11px] font-bold text-zinc-300 block uppercase tracking-wider">Exercise Breakdown & Progress</span>
+          ${exerciseInsights}
+        </div>
+
+        <div class="p-3 bg-cyan-950/30 border border-cyan-500/25 rounded-xl text-xs text-cyan-200/90 leading-relaxed flex items-start gap-2 mt-2">
+          <svg class="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <strong class="font-bold text-cyan-300 block mb-0.5">Scientific Coaching Advice:</strong>
+            Great progressive execution. For the next ${session.dayBadge} session, aim to increase the primary compound weight by +1.25kg to 2.5kg or push for +1 repetition on your final set.
+          </div>
+        </div>
+      `;
+    }
+
+    // --- 8. READINESS & RECOVERY CALCULATOR ---
+    function updateReadiness() {
+      const sore = parseInt(document.getElementById('slider-soreness').value) || 1;
+      const sleep = parseInt(document.getElementById('slider-sleep').value) || 4;
+      const energy = parseInt(document.getElementById('slider-energy').value) || 4;
+
+      // Labels update
+      const soreLabels = ['None (Fresh)', 'Low (Fresh)', 'Mild DOMS', 'Moderate', 'Severely Sore'];
+      const sleepLabels = ['<5 hrs (Poor)', '5-6 hrs', '6-7 hrs', '7-8 hrs (Good)', '8+ hrs (Deep)'];
+      const energyLabels = ['Exhausted', 'Low Drive', 'Normal', 'High Energy', 'Peak Adrenaline'];
+
+      document.getElementById('val-soreness').innerText = soreLabels[sore - 1];
+      document.getElementById('val-sleep').innerText = sleepLabels[sleep - 1];
+      document.getElementById('val-energy').innerText = energyLabels[energy - 1];
+
+      // Readiness formula: max 100
+      // sore (1 is best, 5 is worst), sleep (5 is best), energy (5 is best)
+      const readiness = Math.round(((6 - sore) * 6 + sleep * 7 + energy * 7) * 1.0);
+      const capped = Math.max(30, Math.min(100, readiness));
+
+      const badge = document.getElementById('readiness-score-badge');
+      const advice = document.getElementById('readiness-advice-text');
+
+      badge.innerText = `${capped}% Ready`;
+
+      if (capped >= 80) {
+        badge.className = 'px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        advice.innerText = 'Prime physiological state. You are ready to push progressive overload on compound squats and heavy presses today!';
+      } else if (capped >= 60) {
+        badge.className = 'px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30';
+        advice.innerText = 'Moderate recovery. You can train normally, but be conservative on your top sets: stick strictly to RIR 2.';
+      } else {
+        badge.className = 'px-2.5 py-1 text-xs font-bold rounded-lg bg-red-500/20 text-red-400 border border-red-500/30';
+        advice.innerText = 'Elevated CNS or muscular fatigue detected. Consider an active recovery day or a light deload session.';
+      }
+    }
+
+    document.getElementById('slider-soreness').addEventListener('input', updateReadiness);
+    document.getElementById('slider-sleep').addEventListener('input', updateReadiness);
+    document.getElementById('slider-energy').addEventListener('input', updateReadiness);
+
+    // --- 9. VOLUME TAB CALCULATOR ---
     function renderVolumeView() {
       const container = document.getElementById('volume-bars-container');
       container.innerHTML = '';
 
-      // Muscle group science targets (sets per week)
-      // Schoenfeld / Israetel guidelines
       const targetLandmarks = {
         chest: { name: 'Chest', mev: 8, mav: 14, mrv: 22, color: 'bg-emerald-500' },
         back: { name: 'Back / Lats', mev: 10, mav: 16, mrv: 22, color: 'bg-cyan-500' },
@@ -1040,7 +1543,6 @@
         arms: { name: 'Biceps & Triceps', mev: 8, mav: 14, mrv: 20, color: 'bg-pink-500' }
       };
 
-      // Calculate sets completed in history (last 7 days) or scheduled routine
       const weeklySets = {
         chest: 0,
         back: 0,
@@ -1050,7 +1552,6 @@
         arms: 0
       };
 
-      // Count scheduled sets from all 3 days in the science split program
       Object.keys(ROUTINES).forEach(dk => {
         ROUTINES[dk].exercises.forEach(ex => {
           if (weeklySets[ex.muscleGroup] !== undefined) {
@@ -1065,16 +1566,16 @@
         const pct = Math.min(100, Math.round((sets / item.mav) * 100));
 
         const bar = document.createElement('div');
-        bar.className = 'bg-zinc-800/40 p-3 rounded-xl border border-zinc-800';
+        bar.className = 'bg-zinc-800/40 p-3.5 rounded-2xl border border-zinc-800/90';
         bar.innerHTML = `
           <div class="flex justify-between items-center text-xs mb-1.5">
             <span class="font-bold text-zinc-200">${item.name}</span>
             <span class="text-zinc-400"><strong class="text-white">${sets}</strong> sets/wk <span class="text-[10px] text-emerald-400 font-semibold">(Optimal MAV: ${item.mav})</span></span>
           </div>
           <div class="w-full h-2.5 bg-zinc-800 rounded-full overflow-hidden flex">
-            <div class="${item.color} h-full transition-all duration-500" style="width: ${pct}%"></div>
+            <div class="${item.color} h-full transition-all duration-700 ease-out" style="width: ${pct}%"></div>
           </div>
-          <div class="flex justify-between text-[10px] text-zinc-500 mt-1">
+          <div class="flex justify-between text-[10px] text-zinc-500 mt-1.5 font-medium">
             <span>MEV: ${item.mev}</span>
             <span>Target: ${item.mav}</span>
             <span>MRV: ${item.mrv}</span>
@@ -1084,7 +1585,7 @@
       });
     }
 
-    // --- 8. HISTORY VIEW ---
+    // --- 10. HISTORY VIEW ---
     function renderHistoryView() {
       const container = document.getElementById('history-list');
       const countEl = document.getElementById('history-total-count');
@@ -1094,7 +1595,7 @@
       if (workoutHistory.length === 0) {
         container.innerHTML = `
           <div class="text-center py-12 text-zinc-500">
-            <svg class="w-12 h-12 mx-auto text-zinc-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-12 h-12 mx-auto text-zinc-700 mb-2 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <p class="text-sm font-semibold">No recorded workouts yet</p>
@@ -1106,7 +1607,7 @@
 
       workoutHistory.forEach(item => {
         const card = document.createElement('div');
-        card.className = 'bg-zinc-900 p-4 rounded-2xl border border-zinc-800 space-y-2';
+        card.className = 'bg-zinc-900 p-4 rounded-2xl border border-zinc-800 space-y-2 hover:border-zinc-700 transition';
 
         let exerciseListHtml = '';
         if (item.exercises) {
@@ -1123,14 +1624,14 @@
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-emerald-400">${item.dayBadge}</span>
-                <span class="text-xs text-zinc-500">•</span>
+                <span class="text-xs text-zinc-600">•</span>
                 <span class="text-xs text-zinc-400">${item.date}</span>
               </div>
               <h4 class="font-bold text-sm text-white mt-0.5">${item.dayTitle || 'Hypertrophy Session'}</h4>
             </div>
             <div class="text-right">
               <span class="text-xs font-bold text-cyan-400 block">${item.volumeLoad ? item.volumeLoad.toLocaleString() : 0} ${item.unit || unit}</span>
-              <span class="text-[10px] text-zinc-500">${item.totalSets} completed sets</span>
+              <span class="text-[10px] text-zinc-500 font-medium">${item.totalSets} completed sets</span>
             </div>
           </div>
           <div class="bg-zinc-950/60 p-2.5 rounded-xl border border-zinc-800/60 mt-2">
@@ -1141,7 +1642,7 @@
       });
     }
 
-    // --- 9. 1RM CALCULATOR LOGIC ---
+    // --- 11. 1RM CALCULATOR LOGIC ---
     function update1RM() {
       const weight = parseFloat(document.getElementById('calc-weight').value) || 0;
       const reps = parseInt(document.getElementById('calc-reps').value) || 0;
@@ -1162,7 +1663,7 @@
     document.getElementById('calc-weight').addEventListener('input', update1RM);
     document.getElementById('calc-reps').addEventListener('input', update1RM);
 
-    // --- 10. UNIT TOGGLE (KG / LBS) ---
+    // --- 12. UNIT TOGGLE (KG / LBS) ---
     document.getElementById('unit-toggle-btn').addEventListener('click', () => {
       unit = unit === 'KG' ? 'LBS' : 'KG';
       localStorage.setItem('science_split_unit', unit);
@@ -1171,48 +1672,54 @@
       renderWorkoutView();
     });
 
-    // --- 11. NAVIGATION CONTROLLER ---
+    // --- 13. NAVIGATION CONTROLLER (5 TABS) ---
     const views = {
       workout: document.getElementById('view-workout'),
+      evaluate: document.getElementById('view-evaluate'),
       volume: document.getElementById('view-volume'),
       history: document.getElementById('view-history'),
       tools: document.getElementById('view-tools')
     };
 
+    function switchTab(targetNav) {
+      Object.keys(views).forEach(key => {
+        if (key === targetNav) {
+          views[key].classList.remove('hidden');
+          // Re-trigger CSS animation
+          views[key].classList.remove('tab-view-animate');
+          void views[key].offsetWidth; // trigger reflow
+          views[key].classList.add('tab-view-animate');
+        } else {
+          views[key].classList.add('hidden');
+        }
+      });
+
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        if (b.dataset.nav === targetNav) {
+          b.classList.remove('text-zinc-500');
+          b.classList.add('text-emerald-400');
+        } else {
+          b.classList.remove('text-emerald-400');
+          b.classList.add('text-zinc-500');
+        }
+      });
+
+      if (targetNav === 'evaluate') renderEvaluationView();
+      if (targetNav === 'volume') renderVolumeView();
+      if (targetNav === 'history') renderHistoryView();
+    }
+
     document.querySelectorAll('.nav-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const targetNav = btn.dataset.nav;
-
-        // Toggle active views
-        Object.keys(views).forEach(key => {
-          if (key === targetNav) {
-            views[key].classList.remove('hidden');
-          } else {
-            views[key].classList.add('hidden');
-          }
-        });
-
-        // Update nav styling
-        document.querySelectorAll('.nav-btn').forEach(b => {
-          if (b.dataset.nav === targetNav) {
-            b.classList.remove('text-zinc-500');
-            b.classList.add('text-emerald-400');
-          } else {
-            b.classList.remove('text-emerald-400');
-            b.classList.add('text-zinc-500');
-          }
-        });
-
-        // Refresh views upon navigation
-        if (targetNav === 'volume') renderVolumeView();
-        if (targetNav === 'history') renderHistoryView();
+        switchTab(btn.dataset.nav);
       });
     });
 
-    // --- 12. EXPORT & IMPORT DATA ---
+    // --- 14. EXPORT & IMPORT DATA ---
     document.getElementById('export-json-btn').addEventListener('click', () => {
       const backup = {
         unit: unit,
+        soundEnabled: soundEnabled,
         workoutHistory: workoutHistory,
         exerciseHistory: exerciseHistory,
         exportedAt: new Date().toISOString()
@@ -1250,6 +1757,7 @@
           renderWorkoutView();
           renderHistoryView();
           renderVolumeView();
+          renderEvaluationView();
         } catch (err) {
           alert("Invalid JSON backup file.");
         }
@@ -1265,6 +1773,7 @@
         exerciseHistory = {};
         renderHistoryView();
         renderVolumeView();
+        renderEvaluationView();
         alert("Workout history cleared.");
       }
     });
@@ -1273,6 +1782,7 @@
     document.getElementById('unit-label').innerText = unit;
     document.querySelectorAll('.unit-text').forEach(el => el.innerText = unit);
     renderWorkoutView();
+    updateReadiness();
   </script>
 </body>
 </html>
