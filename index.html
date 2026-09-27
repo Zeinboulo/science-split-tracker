@@ -199,15 +199,15 @@
       <div class="flex items-center justify-between bg-zinc-900/90 p-1.5 rounded-2xl border border-zinc-800 text-xs font-medium shadow-inner">
         <button data-day="day1" class="day-tab-btn flex-1 py-2 rounded-xl text-center transition-all duration-200 font-semibold bg-emerald-500 text-zinc-950 shadow-md">
           Day A
-          <span class="block text-[10px] font-normal opacity-85">Quad & Chest</span>
+          <span class="block text-[10px] font-normal opacity-85">Pec & Squat</span>
         </button>
         <button data-day="day2" class="day-tab-btn flex-1 py-2 rounded-xl text-center transition-all duration-200 font-semibold text-zinc-400 hover:text-zinc-200">
           Day B
-          <span class="block text-[10px] font-normal opacity-75">Hinge & Back</span>
+          <span class="block text-[10px] font-normal opacity-75">Hinge & Lats</span>
         </button>
         <button data-day="day3" class="day-tab-btn flex-1 py-2 rounded-xl text-center transition-all duration-200 font-semibold text-zinc-400 hover:text-zinc-200">
           Day C
-          <span class="block text-[10px] font-normal opacity-75">Full & Arms</span>
+          <span class="block text-[10px] font-normal opacity-75">Legs & Flye</span>
         </button>
       </div>
 
@@ -218,7 +218,7 @@
             <div class="flex items-center gap-2 mb-1">
               <span id="workout-day-badge" class="text-xs font-bold uppercase tracking-wider text-emerald-400">Workout A</span>
               <span class="text-xs text-zinc-600">•</span>
-              <span id="workout-target-summary" class="text-xs text-zinc-400">6 Movements • 18 Sets</span>
+              <span id="workout-target-summary" class="text-xs text-zinc-400">5 Movements • 15 Sets</span>
             </div>
             <h2 id="workout-day-title" class="text-lg font-extrabold text-white tracking-tight">Quad Dominant & Horizontal Push/Pull</h2>
           </div>
@@ -637,7 +637,7 @@
       <div class="grid grid-cols-2 gap-3 mb-6">
         <div class="bg-zinc-800/80 p-3 rounded-2xl border border-zinc-700/60">
           <span class="text-[10px] uppercase font-bold text-zinc-400">Total Sets</span>
-          <p id="modal-sets-val" class="text-2xl font-black text-emerald-400">18</p>
+          <p id="modal-sets-val" class="text-2xl font-black text-emerald-400">15</p>
         </div>
         <div class="bg-zinc-800/80 p-3 rounded-2xl border border-zinc-700/60">
           <span class="text-[10px] uppercase font-bold text-zinc-400">Volume Load</span>
@@ -660,15 +660,25 @@
     const ROUTINES = {
       day1: {
         id: 'day1',
-        title: 'Workout A: Quad Dominant & Horizontal Push/Pull',
+        title: 'Workout A: Upper Pec, Squats & Pull',
         badge: 'Workout A',
-        targetSummary: '6 Exercises • 18 Sets',
-        tip: 'Focus on lengthened position: 2-3s controlled eccentric and a 1s pause in the stretched position to maximize mechanical tension.',
+        targetSummary: '5 Exercises • 15 Sets',
+        tip: 'Focus on clavicular pec stretch, deep knee flexion, and lengthened bicep overload.',
         exercises: [
+          {
+            id: 'incline_db_press',
+            name: 'Incline Dumbbell Press',
+            targetMuscle: 'Clavicular head (upper pec)',
+            scienceNote: '30° incline. Deep stretch at bottom, elbows tucked 45-60°. Target RIR 1-2.',
+            defaultSets: 3,
+            targetReps: '6-8',
+            restSeconds: 150,
+            muscleGroup: 'chest'
+          },
           {
             id: 'squat',
             name: 'Barbell Back Squat / Hack Squat',
-            targetMuscle: 'Quads',
+            targetMuscle: 'Quads & glutes',
             scienceNote: 'Deep knee flexion. Pause 1s in the bottom stretch. Target RIR 2.',
             defaultSets: 3,
             targetReps: '6-8',
@@ -676,69 +686,49 @@
             muscleGroup: 'quads'
           },
           {
-            id: 'bench_press',
-            name: 'Flat Dumbbell / Barbell Bench Press',
-            targetMuscle: 'Chest',
-            scienceNote: 'Elbows at 45-60°. Full deep stretch at bottom of each rep.',
+            id: 'chest_supported_row',
+            name: 'Chest-Supported Neutral Row',
+            targetMuscle: 'Mid-back & lats',
+            scienceNote: 'Eliminates lumbar fatigue. Full protraction at extension, drive elbows back.',
             defaultSets: 3,
             targetReps: '8-10',
-            restSeconds: 150,
-            muscleGroup: 'chest'
-          },
-          {
-            id: 'chest_supported_row',
-            name: 'Chest-Supported Row',
-            targetMuscle: 'Back',
-            scienceNote: 'Eliminates spinal loading. Full protraction at extension.',
-            defaultSets: 3,
-            targetReps: '10-12',
             restSeconds: 120,
             muscleGroup: 'back'
           },
           {
+            id: 'cable_lateral_raise',
+            name: 'Cable Lateral Raise',
+            targetMuscle: 'Lateral deltoid',
+            scienceNote: 'Behind back or cuffed at wrist. Constant tension through lengthened range.',
+            defaultSets: 3,
+            targetReps: '12-15',
+            restSeconds: 90,
+            muscleGroup: 'shoulders'
+          },
+          {
             id: 'incline_db_curl',
-            name: 'Incline Dumbbell Bicep Curl',
-            targetMuscle: 'Biceps',
-            scienceNote: 'Shoulders in extension behind torso to overload lengthened biceps.',
+            name: 'Incline Dumbbell Curl',
+            targetMuscle: 'Biceps (lengthened position)',
+            scienceNote: 'Shoulders extended behind torso to maximize passive stretch on biceps long head.',
             defaultSets: 3,
             targetReps: '10-12',
             restSeconds: 90,
             muscleGroup: 'arms'
-          },
-          {
-            id: 'overhead_triceps',
-            name: 'Overhead Cable Triceps Extension',
-            targetMuscle: 'Triceps',
-            scienceNote: 'Overheads maximize stretch on the long head of the triceps.',
-            defaultSets: 3,
-            targetReps: '12-15',
-            restSeconds: 90,
-            muscleGroup: 'arms'
-          },
-          {
-            id: 'calf_raise',
-            name: 'Standing Calf Raise',
-            targetMuscle: 'Calves',
-            scienceNote: '2s pause in the bottom heel drop to remove Achilles elastic rebound.',
-            defaultSets: 3,
-            targetReps: '12-15',
-            restSeconds: 75,
-            muscleGroup: 'calves'
           }
         ]
       },
       day2: {
         id: 'day2',
-        title: 'Workout B: Hinge Dominant & Vertical Pull/Press',
+        title: 'Workout B: Posterior Chain, Lats & Sternal Chest',
         badge: 'Workout B',
-        targetSummary: '6 Exercises • 19 Sets',
-        tip: 'Romanian deadlifts and pull-downs target maximum muscle length. Avoid bouncing out of the stretched position.',
+        targetSummary: '5 Exercises • 15 Sets',
+        tip: 'Heavy hinge loading for hamstrings and glutes, vertical lat pull, and overhead triceps extension.',
         exercises: [
           {
             id: 'rdl',
-            name: 'Romanian Deadlift (Dumbbell or Barbell)',
-            targetMuscle: 'Hamstrings',
-            scienceNote: 'Hinge hips backwards until hamstring stretch is maximal. Flat spine.',
+            name: 'Romanian Deadlift (RDL)',
+            targetMuscle: 'Hamstrings & glutes',
+            scienceNote: 'Hinge hips backwards until hamstring stretch is maximal. Maintain neutral spine.',
             defaultSets: 3,
             targetReps: '8-10',
             restSeconds: 180,
@@ -746,49 +736,39 @@
           },
           {
             id: 'lat_pulldown',
-            name: 'Lat Pulldown / Neutral Pull-Up',
-            targetMuscle: 'Back',
-            scienceNote: 'Drive elbows down to hips. Controlled 3s eccentric up.',
+            name: 'Lat Pulldown or Weighted Pull-Up',
+            targetMuscle: 'Latissimus dorsi',
+            scienceNote: 'Drive elbows down to hips. Controlled 3s eccentric stretch at top.',
             defaultSets: 3,
-            targetReps: '8-10',
-            restSeconds: 120,
+            targetReps: '6-8',
+            restSeconds: 150,
             muscleGroup: 'back'
           },
           {
-            id: 'incline_db_press',
-            name: 'Incline Dumbbell Press (30° Angle)',
-            targetMuscle: 'Chest',
-            scienceNote: '30° incline isolates the clavicular (upper) head of the pectoralis.',
+            id: 'flat_db_bench',
+            name: 'Flat Dumbbell Bench Press',
+            targetMuscle: 'Sternal chest',
+            scienceNote: 'Converging press path. Full horizontal adduction with 2s eccentric control.',
             defaultSets: 3,
             targetReps: '8-10',
             restSeconds: 150,
             muscleGroup: 'chest'
           },
           {
-            id: 'cable_lateral_raise',
-            name: 'Cable Lateral Raise (Behind Back)',
-            targetMuscle: 'Shoulders',
-            scienceNote: 'Cables provide constant lateral delt tension through the lengthened range.',
-            defaultSets: 4,
-            targetReps: '12-15',
-            restSeconds: 90,
-            muscleGroup: 'shoulders'
-          },
-          {
-            id: 'leg_extension',
-            name: 'Leg Extension',
-            targetMuscle: 'Quads',
-            scienceNote: 'Trains the rectus femoris in the shortened & mid range.',
+            id: 'overhead_triceps',
+            name: 'Overhead Cable Triceps Extension',
+            targetMuscle: 'Triceps (long head)',
+            scienceNote: 'Overhead angle places the long head in maximum stretch at elbow flexion.',
             defaultSets: 3,
-            targetReps: '12-15',
+            targetReps: '10-12',
             restSeconds: 90,
-            muscleGroup: 'quads'
+            muscleGroup: 'arms'
           },
           {
             id: 'hanging_leg_raise',
-            name: 'Hanging Leg Raise / Cable Crunch',
-            targetMuscle: 'Abs',
-            scienceNote: 'Curl pelvis towards chest; emphasize spinal flexion over hip flexion.',
+            name: 'Hanging Leg Raise',
+            targetMuscle: 'Rectus abdominis',
+            scienceNote: 'Curl pelvis towards sternum to ensure abdominal contraction, not just hip flexors.',
             defaultSets: 3,
             targetReps: '12-15',
             restSeconds: 75,
@@ -798,70 +778,60 @@
       },
       day3: {
         id: 'day3',
-        title: 'Workout C: Posterior Chain, Arms & Volume Balance',
+        title: 'Workout C: Quad/Adductor, Upper Back & Hamstrings',
         badge: 'Workout C',
-        targetSummary: '6 Exercises • 18 Sets',
-        tip: 'Prioritize isolated peak contraction and high quality repetitions with RIR 1-2 across all sets.',
+        targetSummary: '5 Exercises • 15 Sets',
+        tip: 'Unilateral/machine leg drive, wide upper back pulling, and isolated flyes & knee flexion.',
         exercises: [
           {
             id: 'leg_press',
-            name: 'Leg Press / Bulgarian Split Squat',
-            targetMuscle: 'Quads',
-            scienceNote: 'Feet low for quad bias or high for glute bias. Full knee bend.',
+            name: 'Leg Press or Bulgarian Split Squat',
+            targetMuscle: 'Quads & adductors',
+            scienceNote: 'Deep knee flexion stretch. Control descent without bouncing.',
             defaultSets: 3,
             targetReps: '10-12',
             restSeconds: 150,
             muscleGroup: 'quads'
           },
           {
-            id: 'seated_leg_curl',
-            name: 'Seated Leg Curl',
-            targetMuscle: 'Hamstrings',
-            scienceNote: 'Seated position produces greater hypertrophy than lying due to hip flexion stretch.',
+            id: 'wide_grip_row',
+            name: 'Wide-Grip Cable Seated Row',
+            targetMuscle: 'Upper back & rear delts',
+            scienceNote: '45-60° elbow flare to recruit rhomboids, mid-traps, and posterior delts.',
             defaultSets: 3,
             targetReps: '10-12',
             restSeconds: 120,
-            muscleGroup: 'hamstrings'
+            muscleGroup: 'back'
           },
           {
-            id: 'cable_flye',
-            name: 'Cable Chest Flye',
-            targetMuscle: 'Chest',
-            scienceNote: 'Provides high tension at peak adduction without triceps fatigue.',
+            id: 'low_to_high_flye',
+            name: 'Low-to-High Cable Flye',
+            targetMuscle: 'Upper chest isolation',
+            scienceNote: 'Lines up with clavicular fibers. Peak squeeze at top, deep stretch at bottom.',
             defaultSets: 3,
             targetReps: '12-15',
             restSeconds: 90,
             muscleGroup: 'chest'
           },
           {
-            id: 'rear_delt_row',
-            name: 'Seated Cable Row (Wide Elbows / Rear Delt)',
-            targetMuscle: 'Back',
-            scienceNote: '45° elbow flare hits rhomboids and posterior deltoids.',
+            id: 'standing_db_lateral',
+            name: 'Standing Dumbbell Lateral Raise',
+            targetMuscle: 'Lateral deltoid',
+            scienceNote: 'Slight torso forward lean (15°). Lead with elbows, control down.',
             defaultSets: 3,
             targetReps: '12-15',
             restSeconds: 90,
             muscleGroup: 'shoulders'
           },
           {
-            id: 'hammer_curl',
-            name: 'Dumbbell Hammer Curl',
-            targetMuscle: 'Arms',
-            scienceNote: 'Neutral grip shifts mechanical load to brachialis & brachioradialis.',
+            id: 'lying_leg_curl',
+            name: 'Lying Leg Curl (or Seated)',
+            targetMuscle: 'Hamstrings (knee flexion)',
+            scienceNote: 'Strict knee flexion. Science Note: Seated leg curl provides greater lengthened stretch (Maeo et al. 2021) if machine is available.',
             defaultSets: 3,
             targetReps: '10-12',
             restSeconds: 90,
-            muscleGroup: 'arms'
-          },
-          {
-            id: 'triceps_pushdown',
-            name: 'Dual-Rope Triceps Pushdown',
-            targetMuscle: 'Triceps',
-            scienceNote: 'Spread ropes apart at bottom for complete triceps contraction.',
-            defaultSets: 3,
-            targetReps: '12-15',
-            restSeconds: 90,
-            muscleGroup: 'arms'
+            muscleGroup: 'hamstrings'
           }
         ]
       }
@@ -995,9 +965,14 @@
     // --- 4. DATA BUILDER & WORKOUT LOGIC ---
     function initializeDayData(dayKey) {
       const routine = ROUTINES[dayKey];
-      const saved = localStorage.getItem('science_split_active_' + dayKey);
-      if (saved) {
-        return JSON.parse(saved);
+      const savedStr = localStorage.getItem('science_split_active_' + dayKey);
+      if (savedStr) {
+        try {
+          const saved = JSON.parse(savedStr);
+          if (saved && saved.exercises && saved.exercises.length === routine.exercises.length && saved.exercises[0].id === routine.exercises[0].id) {
+            return saved;
+          }
+        } catch(e) {}
       }
 
       // Fresh session structure
@@ -1354,8 +1329,8 @@
 
       if (workoutHistory.length > 0) {
         const latest = workoutHistory[0];
-        // Volume adequacy: Ideal single session sets is 15-20 sets
-        const setDelta = Math.abs(latest.totalSets - 18);
+        // Volume adequacy: Ideal single session sets for 3-day split is 15 sets
+        const setDelta = Math.abs(latest.totalSets - 15);
         totalVolumeScore = Math.max(70, Math.min(99, 98 - (setDelta * 3)));
 
         // RIR score: optimal avg RIR is between 1.0 and 2.2
@@ -1535,12 +1510,13 @@
       container.innerHTML = '';
 
       const targetLandmarks = {
-        chest: { name: 'Chest', mev: 8, mav: 14, mrv: 22, color: 'bg-emerald-500' },
-        back: { name: 'Back / Lats', mev: 10, mav: 16, mrv: 22, color: 'bg-cyan-500' },
-        quads: { name: 'Quads', mev: 8, mav: 14, mrv: 20, color: 'bg-emerald-400' },
-        hamstrings: { name: 'Hamstrings & Glutes', mev: 6, mav: 12, mrv: 18, color: 'bg-purple-500' },
-        shoulders: { name: 'Side / Rear Delts', mev: 8, mav: 16, mrv: 24, color: 'bg-amber-400' },
-        arms: { name: 'Biceps & Triceps', mev: 8, mav: 14, mrv: 20, color: 'bg-pink-500' }
+        chest: { name: 'Chest (Upper & Sternal)', mev: 6, mav: 10, mrv: 18, color: 'bg-emerald-500' },
+        back: { name: 'Back & Lats', mev: 6, mav: 12, mrv: 20, color: 'bg-cyan-500' },
+        quads: { name: 'Quads & Adductors', mev: 6, mav: 10, mrv: 18, color: 'bg-emerald-400' },
+        hamstrings: { name: 'Hamstrings & Glutes', mev: 4, mav: 8, mrv: 16, color: 'bg-purple-500' },
+        shoulders: { name: 'Lateral Deltoids', mev: 6, mav: 10, mrv: 20, color: 'bg-amber-400' },
+        arms: { name: 'Arms (Biceps & Triceps)', mev: 6, mav: 10, mrv: 18, color: 'bg-pink-500' },
+        abs: { name: 'Abs & Core', mev: 3, mav: 6, mrv: 12, color: 'bg-blue-400' }
       };
 
       const weeklySets = {
@@ -1549,7 +1525,8 @@
         quads: 0,
         hamstrings: 0,
         shoulders: 0,
-        arms: 0
+        arms: 0,
+        abs: 0
       };
 
       Object.keys(ROUTINES).forEach(dk => {
