@@ -891,15 +891,23 @@
     }
     updateSoundUI();
 
-    // --- 3. REST TIMER ENGINE ---
+    // --- 3. REST TIMER ENGINE (WALL-CLOCK & SAFARI BACKGROUND RESILIENT) ---
     let timerInterval = null;
-    let timerRemaining = 0;
-    let timerTotal = 0;
+    let timerEndTime = parseInt(localStorage.getItem('science_split_timer_end')) || null;
+    let timerTotal = parseInt(localStorage.getItem('science_split_timer_total')) || 0;
+    let timerExerciseName = localStorage.getItem('science_split_timer_ex') || 'Rest Interval';
+    const originalDocTitle = "Science Split | Evidence-Based Gym Tracker";
 
     function startRestTimer(seconds, exerciseName = 'Exercise') {
       clearInterval(timerInterval);
-      timerRemaining = seconds;
+      const now = Date.now();
       timerTotal = seconds;
+      timerEndTime = now + (seconds * 1000);
+      timerExerciseName = exerciseName;
+
+      localStorage.setItem('science_split_timer_end', timerEndTime.toString());
+      localStorage.setItem('science_split_timer_total', timerTotal.toString());
+      localStorage.setItem('science_split_timer_ex', timerExerciseName);
 
       const bar = document.getElementById('rest-timer-bar');
       const badge = document.getElementById('timer-active-badge');
@@ -909,48 +917,153 @@
       badge.classList.remove('hidden');
       nameEl.innerText = exerciseName;
 
-      updateTimerUI();
+      // Request browser notification permission if available and not yet asked
+      if ("Notification" in window && Notification.permission === "default") {
+        try { Notification.requestPermission(); } catch(e) {}
+      }
 
-      timerInterval = setInterval(() => {
-        timerRemaining--;
-        updateTimerUI();
+      tickTimer();
+      timerInterval = setInterval(tickTimer, 250); // fast tick for smooth updates
+    }
 
-        if (timerRemaining <= 0) {
+    function tickTimer() {
+      if (!timerEndTime) return;
+      const now = Date.now();
+      const remainingMs = timerEndTime - now;
+      const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
+
+      const textEl = document.getElementById('timer-seconds-text');
+      const circleEl = document.getElementById('timer-svg-circle');
+      const bar = document.getElementById('rest-timer-bar');
+      const badge = document.getElementById('timer-active-badge');
+
+      if (remainingMs > 0) {
+        // Update countdown text
+        const mins = Math.floor(remainingSec / 60);
+        const secs = remainingSec % 60;
+        textEl.innerText = mins > 0 ? `${mins}:${secs < 10 ? '0' : ''}${secs}` : `${secs}s`;
+
+        // Circumference is 2 * PI * 18 = ~113.1
+        const progress = timerTotal > 0 ? (remainingMs / (timerTotal * 1000)) * 113.1 : 0;
+        circleEl.style.strokeDashoffset = (113.1 - progress).toString();
+
+        // Update document title so user can see countdown in mobile tab switcher
+        document.title = `⏱️ (${textEl.innerText}) Science Split`;
+      } else {
+        // Timer Expired!
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerEndTime = null;
+
+        localStorage.removeItem('science_split_timer_end');
+        localStorage.removeItem('science_split_timer_total');
+        localStorage.removeItem('science_split_timer_ex');
+
+        textEl.innerText = "0s";
+        circleEl.style.strokeDashoffset = "0";
+        document.title = "🔔 Rest Done! • Science Split";
+
+        playBeep(659, 0.15);
+        setTimeout(() => playBeep(880, 0.35), 180);
+        if (navigator.vibrate) navigator.vibrate([200, 100, 250, 100, 200]);
+
+        // Send web notification if permitted (PWA / supported mobile web)
+        if ("Notification" in window && Notification.permission === "granted") {
+          try {
+            new Notification("Rest Finished! 🏋️‍♂️", {
+              body: `Time for your next set of ${timerExerciseName}!`,
+              icon: "https://zeinboulo.github.io/science-split-tracker/icon.png"
+            });
+          } catch(e) {}
+        }
+
+        setTimeout(() => {
+          bar.classList.add('hidden');
+          badge.classList.add('hidden');
+          document.title = originalDocTitle;
+        }, 3500);
+      }
+    }
+
+    function checkRestoredTimer() {
+      const savedEnd = parseInt(localStorage.getItem('science_split_timer_end'));
+      const savedTotal = parseInt(localStorage.getItem('science_split_timer_total'));
+      const savedEx = localStorage.getItem('science_split_timer_ex');
+
+      if (savedEnd && savedTotal) {
+        const now = Date.now();
+        const diff = savedEnd - now;
+        if (diff > 0) {
+          // Timer still active from previous visit or background session!
+          timerEndTime = savedEnd;
+          timerTotal = savedTotal;
+          timerExerciseName = savedEx || 'Exercise';
+
+          const bar = document.getElementById('rest-timer-bar');
+          const badge = document.getElementById('timer-active-badge');
+          const nameEl = document.getElementById('timer-exercise-name');
+          bar.classList.remove('hidden');
+          badge.classList.remove('hidden');
+          nameEl.innerText = timerExerciseName;
+
+          tickTimer();
           clearInterval(timerInterval);
+          timerInterval = setInterval(tickTimer, 250);
+        } else if (diff > -60000) {
+          // Finished less than 60s ago while user was away
+          localStorage.removeItem('science_split_timer_end');
+          localStorage.removeItem('science_split_timer_total');
+          localStorage.removeItem('science_split_timer_ex');
           playBeep(659, 0.15);
           setTimeout(() => playBeep(880, 0.35), 180);
           if (navigator.vibrate) navigator.vibrate([200, 100, 250]);
-          setTimeout(() => {
-            bar.classList.add('hidden');
-            badge.classList.add('hidden');
-          }, 3500);
+        } else {
+          // Stale timer older than 1 minute
+          localStorage.removeItem('science_split_timer_end');
+          localStorage.removeItem('science_split_timer_total');
+          localStorage.removeItem('science_split_timer_ex');
         }
-      }, 1000);
+      }
     }
 
-    function updateTimerUI() {
-      const textEl = document.getElementById('timer-seconds-text');
-      const circleEl = document.getElementById('timer-svg-circle');
-      
-      const mins = Math.floor(timerRemaining / 60);
-      const secs = timerRemaining % 60;
-      textEl.innerText = mins > 0 ? `${mins}:${secs < 10 ? '0' : ''}${secs}` : `${secs}s`;
-
-      // Circumference is 2 * PI * 18 = ~113.1
-      const progress = timerTotal > 0 ? (timerRemaining / timerTotal) * 113.1 : 0;
-      circleEl.style.strokeDashoffset = (113.1 - progress).toString();
-    }
+    // Sync immediately whenever Safari tab gains focus or screen unlocks
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        if (timerEndTime) {
+          tickTimer();
+        } else {
+          checkRestoredTimer();
+        }
+      }
+    });
+    window.addEventListener('focus', () => {
+      if (timerEndTime) {
+        tickTimer();
+      } else {
+        checkRestoredTimer();
+      }
+    });
 
     document.getElementById('timer-stop-btn').addEventListener('click', () => {
       clearInterval(timerInterval);
+      timerInterval = null;
+      timerEndTime = null;
+      localStorage.removeItem('science_split_timer_end');
+      localStorage.removeItem('science_split_timer_total');
+      localStorage.removeItem('science_split_timer_ex');
       document.getElementById('rest-timer-bar').classList.add('hidden');
       document.getElementById('timer-active-badge').classList.add('hidden');
+      document.title = originalDocTitle;
     });
 
     document.getElementById('timer-add-30').addEventListener('click', () => {
-      timerRemaining += 30;
-      timerTotal += 30;
-      updateTimerUI();
+      if (timerEndTime) {
+        timerEndTime += 30000;
+        timerTotal += 30;
+        localStorage.setItem('science_split_timer_end', timerEndTime.toString());
+        localStorage.setItem('science_split_timer_total', timerTotal.toString());
+        tickTimer();
+      }
     });
 
     document.getElementById('global-timer-btn').addEventListener('click', () => {
@@ -1760,6 +1873,7 @@
     document.querySelectorAll('.unit-text').forEach(el => el.innerText = unit);
     renderWorkoutView();
     updateReadiness();
+    checkRestoredTimer();
   </script>
 </body>
 </html>
